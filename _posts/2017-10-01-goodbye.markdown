@@ -1,13 +1,10 @@
 ---
 layout: post
-title:  "Goodbye WordPress"
-date:   2017-10-1
-categories: wordpress, nightmare
-use_math: false
+title:  Goodbye WordPress
+description: at least they got the refund right
+date:   2017-10-1 08:20:00
+comments: true
 ---
-# Preliminary
-This post serves as a template for subsequent posts.  My intent is to make this blog a compact summary of my thoughts regarding what I have been engaging with, or working on, over the recent past.  I'm hopeful that by "recent past" I mean no more than a few days.  To get the ball rolling, I thought I'd share my experience with setting up this blog.  After all, self-referencing is all-the-rage.
-
 
 ## Summary
 
