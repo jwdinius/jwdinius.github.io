@@ -39,7 +39,7 @@ text:
     older: 'Older'
 
 # Comments
-disqus_shortname: joedinius # put your disqus shortname
+disqus_shortname: https-jwdinius-github-io # put your disqus shortname
 
 # Optional features
 show_social_icons:  true
