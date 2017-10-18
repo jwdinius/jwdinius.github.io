@@ -2,7 +2,7 @@
 layout: page
 title: portfolio
 permalink: /projects/
-description: This is my project portfolio.  Please check back periodically for new projects.
+description: Please check back periodically for new projects.
 ---
 
 {% for project in site.projects %}
