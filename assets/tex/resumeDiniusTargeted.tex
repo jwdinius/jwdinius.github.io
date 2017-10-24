@@ -16,6 +16,7 @@
 \usepackage{framed}
 \usepackage{hyperref}
 \usepackage{tocloft}
+\usepackage{fancyhdr}
 
 %-----------------------------------------------------------
 %Edit these values as you see fit
@@ -65,6 +66,12 @@
     #2 \\
   \end{tabular*}%
 }
+
+\pagestyle{fancy}
+\fancyfoot{}
+\rfoot{\thepage \ of\ 2}
+\lfoot{Joseph Dinius, PhD}
+\cfoot{\url{https://jwdinius.github.io}}
 %-----------------------------------------------------------
 
 
@@ -89,7 +96,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \item
 	\headerrow{\textbf{Game7 Staffing/ Walt Disney Imagineering R \& D}}{Glendale, CA}
 	\headerrow{\emph{Senior R \& D Imagineer}}{July 2017 -- Present}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Responsible for developing scene segmentation and state estimation algorithms for multiple object tracking using 2D laser rangefinders}
 		\resitem{Conceptualized and developed a collision avoidance algorithm to ensure passenger safety}
@@ -99,7 +106,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \item
 	\headerrow{\textbf{Ford Motor Company}}{Dearborn, MI}
 	\headerrow{\emph{Senior Research Engineer}}{December 2015 -- June 2017}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Responsible for conceptualizing and interpreting advanced algorithms for multiple object tracking for the Next Generation Vehicle (NGV), including state estimation, data fusion, and data association}
 	\end{itemize}
@@ -107,7 +114,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \item
 	\headerrow{\textbf{Raytheon Missile Systems}}{Tucson, AZ}
 	\headerrow{\emph{Senior Systems Engineer II}}{June 2006 -- December 2015}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 	 \resitem{Led small teams in simulation, control, and signal/image processing disciplines}
 	 \resitem{Directed analyses of flight test failure, operational safety, requirements development, and system performance}
@@ -124,7 +131,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \begin{itemize}[label={},leftmargin=*,noitemsep]
 \item
 	\headerrow{\textbf{Differential Drive ROS Robot}}{June 2017}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Built a differential drive robot that navigated around obstacles to a desired goal using COTS parts}
 		\resitem{April tags were used for localization (using a Raspberry Pi camera), Kalman filters using position and commanded speed were used for navigation, and ROS Catkin was used for interprocess communication and vehicle control}
@@ -133,7 +140,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 	}
 \item
         \headerrow{\textbf{Single Shot Detection using Sliding Windows}}{April 2017}
-        {\footnotesize
+        {\small
 	\begin{itemize}[noitemsep]
 	        \resitem{Built support vector machine classifier to detect cars in a monocular video stream}
 		\resitem{Performed feature extraction to increase classifier accuracy}
@@ -144,17 +151,17 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 	}
 \item
 	\headerrow{\textbf{Traffic Sign Classification Using Convolutional Neural Networks}}{March 2017}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Implemented an image classifier using deep convolutional neural networks to classify signs from the German traffic sign database}
 		\resitem{Classifier achieved an accuracy of over 93\% on a dataset with over 40 different possible classifications for each feature vector}
 		\resitem{Technologies Used: Python, Tensorflow, OpenCV}
 	\end{itemize}
 	}
-
+\newpage
 \item
 	\headerrow{\textbf{Guidance Integrated Fuzing Improvement with Regression}}{October 2015}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Identified principal components most responsible for guidance integrated fuzing algorithm effectiveness}
 		\resitem{Regression analysis resulted in performance improvement of guidance fuzing algorithm}
@@ -163,7 +170,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 	}
 \item
 	\headerrow{\textbf{Simulation Runtime Improvement Using Neural Networks}}{March 2014}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Conceptualized a simple neural network to reduce computation time of simulation of optical flux due to irradiating stars and planets}
 		\resitem{Solution allowed faster prototyping of guidance and control algorithms}
@@ -171,16 +178,16 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 	\end{itemize}
 	}
 \end{itemize}
-\newpage
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Skills}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{tabular}{ll}
    OS &: Windows, OS X, Ubuntu\\
    Languages &: C/C++, Python\\
-   Frameworks/Libraries \ &: Eigen, Scikit-image, Scikit-learn, Tensorflow, Keras, OpenCV\\
-   Other &: Kalman filtering, particle filtering, localization, computer vision, \\
-    \phantom{other} &\phantom{:} machine learning, data exploration \& visualization
+   Software \ &: Eigen, Scikit-image, Scikit-learn, Tensorflow, Keras, OpenCV, Matlab/Simulink, \\\phantom{other} &\phantom{:} git, gdb, valgrind, \LaTeX \\
+   Other &: Kalman filtering, particle filtering, localization, computer vision, machine learning, \\
+    \phantom{other} &\phantom{:} data exploration \& visualization
 \end{tabular} \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -205,8 +212,13 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}[leftmargin=*,noitemsep,label={}]
 \item \headerrow{\textbf{University of Arizona}, MS/PhD Applied Mathematics}{}
+{\small
+ 	\begin{itemize}
+		\resitem{Raytheon Advanced Scholar's Fellowship}
+	\end{itemize}
+}
 \item \headerrow{\textbf{Northern Arizona University}, BS Mathematics and Physics}{}
-{\footnotesize
+{\small
  	\begin{itemize}
 		\resitem{University Honors Program}
 		\resitem{Dean's List}
@@ -221,7 +233,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \item
 	\headerrow{\textbf{CHiMES}}{Tucson, AZ}
 	\headerrow{\emph{Project Advisor}}{2014}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 	        \resitem{\textbf{C}ommunity \textbf{H}elpers in \textbf{M}athematics, \textbf{E}ngineering, and \textbf{S}ciences}
 		\resitem{Advised high school students as part of a university-led effort to engage them in developing engineering projects that will impact their community.}
@@ -230,7 +242,7 @@ South Lyon, MI 48178 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail
 \item
 	\headerrow{\textbf{Sunnyside High School}}{Tucson, AZ}
 	\headerrow{\emph{Tutor}}{2013}
-	{\footnotesize
+	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Tutored remedial high school math as part of Sunnyside Math Nights}
 	\end{itemize}

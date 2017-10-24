@@ -55,32 +55,40 @@ A class is typically an abstract idea,like a definition, whereas an object is an
 This is a signal to the compiler to avoid doing optimizations on an object, because its value can be changed outside of its scope.  See [this](http://www.geeksforgeeks.org/understanding-volatile-qualifier-in-c/)
 
 ### Q7: Sorting algorithms: need to create a table with attributes and a description!
-* Heapsort best,avg: $O(n \log n)$
-* Bubble sort best: $O(n)$ avg: $O(n^2)$
-* Insertion sort best $O(n)$ avg: $O(n^2)$
+* Heapsort best,avg: $O(n \log n)$ - divides into sorted and unsorted region, uses a heap data structure to improve upon linear search to find the maximum within the unsorted region.  More favorable worst case than quicksort.
+* Merge sort best: $O(n \log n)$ avg: $O(n \log n)$ - divide and conquer; divide the structure down to singletons and then reassemble.
+* Quick sort best $O(n)$ avg: $O(n \log n)$ - a comparison sort, it sorts based on a "less-than" comparator.  It can be 2-3 times faster than heap or merge sorts.  Small spatial complexity typically.
 
 ### Q8: Hash tables: Pros/cons
 * Pros: They're faster than other table data structures.  They are particularly efficient when the size of the table is known beforehand so an optimal allocation can be done once.  Careful construction of the hash function can create a situation where the key need not be stored within the table at all.
 
-* Cons: Prone to hacking, e.g. DOS or denial-of-service.  Memory map is seemingly random; not ordered.  Finding a suitable hash function can be time-consuming, not so much scientific as artistic.  Insertion or deletion can be time-expensive.
+* Cons: Prone to hacking, e.g. DoS or denial-of-service.  Memory map is seemingly random; not ordered.  Finding a suitable hash function can be time-consuming, not so much scientific as artistic.  Insertion or deletion can be time-expensive.
 
 ### Q9: What are the drawbacks of too many virtuals?
 Declaration of methods as virtual cause late binding, which can negatively impact program performance, particularly improvements from optimizations, e.g. inlining.  The moral of the story is: virtuals aren't inherently bad, the programmer just needs to be aware of the context in which they are being used and make sure that they are appropriate.  See [this](https://arstechnica.com/civis/viewtopic.php?f=20&t=858217).
 
 ### Q10: What is polymorphism?
-Polymorphism means that a call to a member function may be call a different function depending on the type of object that invokes the function.  [This](https://www.tutorialspoint.com/cplusplus/cpp_polymorphism.htm) has a nice discussion about static resolution: base class method definition trumps those of the child, this is where using virtual declaration is useful
+Polymorphism means that a call to a member function may call a different function depending on the type of object that invokes the function.  [This](https://www.tutorialspoint.com/cplusplus/cpp_polymorphism.htm) has a nice discussion about static resolution: base class method definition trumps those of the child, this is where using ```virtual``` declaration is useful
 
 ### Q11: What is the ```explicit``` keyword?
+Avoids implicit conversion by the compiler from an object, like an ```int```, to another object that has a constructor defined via that first object, like ```Foo(int )```.
 
 ### Q12: Why use the ```const``` keyword?  How does it relate to ```static```?
+* ```const``` is constant; it cannot change in its scope; ```const```s of the same name can be declared differently within different scopes
+* ```static``` variables are initialized only once, meaning they are per class, not per *object*; i.e. multiple instances of a class declaring a member static will share the same block of memory and any object's modification of the ```static``` member will be visible to all other objects.
 
 ### Q13: What is the difference between a virtual and a purely virtual method?
+A virtual method is one that has a non-empty definition at compile time.  Implementing a method of the same name within a derived class signals the compiler that we don't want static linkage for this method; that is, we want the method called to be based upon the type of object calling it.  This is known as dynamic linkage.  A purely virtual method, on the other hand, is defined as being empty; derived classes must define this method.
 
 ### Q14: What is a binary search tree?
+A binary search tree is a binary tree where each node has a comparable key, and possibly an associated value, and satisfies the restriction that the key in any node is larger than the keys in all nodes in that node's left subtree and smaller than the keys in all nodes in that node's right subtree.
 
 ## Computing/Embedded Systems
 
-### Q1: UDP vs. TCP 
+### Q1: UDP vs. TCP
+Both are internet protocols
+* TCP is bidirectional; data can be sent both ways.  Suitable for high reliability applications where timing isn't as critical.
+* UDP is simpler; it is connectionless.  One one computer sends info, the process is over.  Suitable for fast, efficient transfer, like games for example.
 
 ### Q2: Thread management:  What is deadlock?  What are race conditions?
 Deadlock:
@@ -102,18 +110,24 @@ Behavior of software or hardware components where system output depends on the s
 
 In multithreaded applications, each thread will have its own stack, but the heap is shared.
 
-### Q4: How to run multiple processes on a single core single thread architecture?
+### Q4: How to run multiple processes on a single-core, single-thread architecture?
 See time-slicing and context switching.
+* Time-slicing: a process is given a slice of time over which the OS will give it priority.  The scheduler performs process check to see which process has priority.
+* Context switching: the process of saving and restoring the state of a process to resume execution on a multitasking OS.
 
 ## Mathematics
 
 ### Q1: Support vector machines.  What loss does it use to train?
+SVM seek to find the separating surface that maximizes margin between points above it and below it.  The loss function used is called [hinge loss](https://en.wikipedia.org/wiki/Hinge_loss).
 
 ### Q2: What is regularization in a machine learning context?
+Regularization is a process of discouraging complexity simply for the sake of its ability to better explain observations.  The thought is that such complexity will not generalize to new data very well.
 
 ### Q3: Linear algebra:  What are eigenvalues/eigenvectors?  Over- vs. underdetermined systems? 
+* overdetermined/underdetermined: consider the a row of an augmented linear system where every entry, except for that of the last column, is all zeros.  This leads to a 0 = something not zero, which means no solution.  If, however, this last column were also zero, then there'd be an infinite family of solutions, the shape/rank of which will be determined by the number of all-zero rows.
+* eigenvalues/eigenvectors: eigenvectors represent the "preferred" directions of a matrix; these are called "principal axes", and they form a basis for the column space of the matrix.  The eigenvalues represent how components of vectors in the embedding space will be stretched or contracted along the matrix's eigenvectors.  The space spanned by the eigenvectors associated with zero eigenvalues is called the null space.  The number of nonzero eigenvalues represents the column rank of the matrix.
 
 ## Sensors
 
-### Q1: How does stereoscopic camera setup capture depth information?
-
+### Q1: How does a stereoscopic camera setup capture depth information?
+See [this](https://en.wikipedia.org/wiki/Stereoscopic_depth_rendition)
