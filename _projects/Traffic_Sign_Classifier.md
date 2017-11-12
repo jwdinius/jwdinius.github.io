@@ -5,8 +5,6 @@ description: Deep Neural Networks
 img: /assets/img/German_road_signs.jpg
 ---
 
-## Traffic Sign Classifier
-
 ## Abstract
 A traffic sign classifier is build using the LeNet-5 deep neural network topology.  Given a dataset containing images from 43 distinct classes from the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset), a classifier is built that obtains a 93% classification accuracy on a holdout set.  Class imbalances are addressed and corrected for, and an exploratory analysis of the dataset is performed.
 

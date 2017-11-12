@@ -6,8 +6,6 @@ img: /assets/img/Cab.png
 use_math: true
 ---
 
-## Reinforcement Learning Project: Train a Smartcab to Drive
-
 # Abstract
 This is a project that I completed as part of Udacity's machine learning nanodegree.  Given a basic Python simulator, I was able to use a Q-learning scheme to teach a smartcab to drive safely and efficiently towards a desired goal.
 
