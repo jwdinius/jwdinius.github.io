@@ -8,7 +8,9 @@ comments: true
 ---
 
 ### Summary
-* t
+* I wanted an electric bicycle for awhile, but fully-integrated units are really pricey.
+* Conversion kits seemed like a decent option, but I was worried that it would be too much work.  It turns out that there are kits out there that can be installed with minimal effort, just don't expect great documentation :)
+* I was able to, without even the bicycle to convert, build a fully-functional electric bicycle for a little over $1,000.
 
 ### Introduction
 The lease on my truck is concluding soon and I've decided I would like to try and go without a personal vehicle for a time.  With the new move to Oak Park, CA, I am only a few miles from work and could easily ride a bike.  Well, at least I could have before my fall a few years back.
@@ -123,7 +125,13 @@ Tidying up the wiring is highly personal.  I chose a balance between aesthetic a
 #### Step 6: Adjustment
 As with any major modifications to a bicycle, the final step is to readjust your brake alignment and tension, pump the wheels to recommended pressure, ensure the wheels spin freely, etc...  Gratefully, this was all I had to do before going on a test ride.
 
-### Test Ride
+The post-op on the test ride made something very clear: the old seat had to go.  Replacing it added another $60 to the total.  Oh well.  It's totally worth it to not dread sitting on the bike each and every time that I ride it.
 
-### Conclusion
+### Test Ride
+Check [this](https://www.youtube.com/watch?v=jMP4PeffacQ) out!
+
+I've had a chance to put about a dozen or so miles on the bike now and it has, thus far, exceeded my expectations.  The bike grinds up most hills I have encountered, which is key, because where we just moved, there are a bunch of hills.  Even the worst of them can be taken with only minor pedal assistance on my part.
+
+### Total Cost
+All-in, building an electric bike from a conversion kit cost, including the bike off Craig's List, $1,077.  This was within the $1,000 +/- $100 budget that I set. 
 
