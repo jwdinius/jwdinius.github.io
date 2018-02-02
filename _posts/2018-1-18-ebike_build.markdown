@@ -8,8 +8,8 @@ comments: true
 ---
 
 ### Summary
-* I wanted an electric bicycle for awhile, but fully-integrated units are really pricey.
-* Conversion kits seemed like a decent option, but I was worried that it would be too much work.  It turns out that there are kits out there that can be installed with minimal effort, just don't expect great documentation :)
+* I had wanted an electric bicycle for awhile, but fully-integrated units that I found were really pricey.
+* Conversion kits seemed like a decent option, but I was worried that it would be too much work.  It turned out that there are kits out there that can be installed with minimal effort.  A word of caution:  don't expect great documentation :)
 * I was able to, without even the bicycle to convert, build a fully-functional electric bicycle for a little over $1,000.
 
 ### Introduction
@@ -52,14 +52,14 @@ I used different zip-ties than the ones provided; I thought that those included 
 <p align="center"> 
 <img src="/assets/img/ebike/box_contents.jpg">
 </p>
-I opened the conversion kit's box and was a bit disheartened to find no instructions.  Seriously?!  Not only were there no instructions, there wasn't even a piece of paper with a *URL* to the instructions!  This, I think, is terrible form.  Dillenger included a packing slip with all contents the box should contain and safety documents for the battery and charger.  That was it.  After some searching on the Dillenger website, I found the appropriate documentation for both the [kit](https://880b28d3d003e6b1c176-ee9159906b823979ce618332e73bec87.ssl.cf4.rackcdn.com/electric-bike-kits/dillenger_samsung_street_manual_2016.pdf) and [display](https://880b28d3d003e6b1c176-ee9159906b823979ce618332e73bec87.ssl.cf4.rackcdn.com/other/C965%20V5.0.pdf).  I followed the instructions only cursorily, as I found them to be poorly phrased, confusing, and full of grammatical errors.  I don't want to derail the whole conversation, but proper documentation of a manufactured product that requires end-user installation shouldn't be too much to ask for and yet it oftentimes is.  To be clear:  Proper documentation, to me, means
+I opened the conversion kit's box and was a bit disheartened to find no instructions.  Seriously?!  Not only were there no instructions, there wasn't even a piece of paper with a *URL* to the instructions!  This, I think, is terrible form.  Dillenger included a packing slip with all contents the box should contain and safety documents for the battery and charger.  That was it.  After some searching on the Dillenger website, I found the appropriate documentation for both the [kit](https://880b28d3d003e6b1c176-ee9159906b823979ce618332e73bec87.ssl.cf4.rackcdn.com/electric-bike-kits/dillenger_samsung_street_manual_2016.pdf) and [display](https://880b28d3d003e6b1c176-ee9159906b823979ce618332e73bec87.ssl.cf4.rackcdn.com/other/C965%20V5.0.pdf).  I followed the instructions only cursorily, as I found them to be poorly phrased, confusing, and full of grammatical errors.  I don't want to derail the whole conversation, but proper documentation of a manufactured product that requires end-user installation shouldn't be too much to ask for and yet it oftentimes is.  To be clear:  proper documentation, to me, means
 * A hard copy of the installation instructions is included with the shipped product
 * A clear definition of the required tools and other prerequisites for the installation
 * Clearly worded, *concise* steps to complete installation.
 
 Dillenger has dropped the ball on *all* of the bullet points; the copy that I had to go out and find was poorly worded and spent too much time on diversions about the tech in the system.  I get it, it's cool tech, but enough about the Hall Effect sensor already...
 
-My first steps were to strip the handlebars, remove the front wheel, and prepare it for the actual install.
+*My* first steps were to strip the handlebars, remove the front wheel, and prepare it for the actual install.
 <p align="center"> 
 <img src="/assets/img/ebike/strip.jpg">
 </p>
@@ -99,7 +99,7 @@ By this point, all of the real labor was over.  What remained was just finding a
 <img src="/assets/img/ebike/handlebar_setup.jpg">
 </p>
 
-Now that everything was mounted on the handlebars, I reinstalled the brakes and added the e-brake sensors.  These are so cool, in my opinion.  Just a simple magnetic sensor mounts on the brake harness and a magnet attached to the lever "tells" the controller when the brake is engaged, which disengages the throttle.  Simple physics, but oh so awesome!
+Now that everything was mounted on the handlebars, I reinstalled the brakes and added the e-brake sensors.  These are so cool; just a simple magnetic sensor mounts on the brake harness and a magnet attached to the lever "tells" the controller when the brake is engaged, which disengages the throttle.  Simple physics, but oh so awesome!
 <p align="center"> 
 <img src="/assets/img/ebike/ebrake_sensor.jpg">
 </p>

@@ -1,10 +1,10 @@
 # -----------------------------------------------------------------------------
 # Site settings
 # -----------------------------------------------------------------------------
-name: Joseph Dinius
+name: Joe Dinius
 email: josephwdinius@gmail.com
 description: > # this means to ignore newlines until "url:"
-  Project/Blog of Joseph Dinius. Based on [*folio](https://github.com/bogoli/-folio) design.
+  Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
 footer_text: >
   Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme.
   Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
