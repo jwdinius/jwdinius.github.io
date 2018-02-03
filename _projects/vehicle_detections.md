@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Single Shot Detection and Tracking
-description: Image Processing
+title: Single Shot Detection & Tracking
+description: OpenCV, SVM, Kalman filter
 img: /assets/img/1.png
 use_math: true
 ---
