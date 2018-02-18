@@ -11,7 +11,8 @@ comments: true
 </p>
 
 ### Summary
-While, I did enjoy aspects of the program, I would not recommend it.
+While I did enjoy aspects of the program, I would _not_ recommend it.
+
 Pros:
 
 * Interesting presentation of widely varying topics in an exciting field
@@ -23,11 +24,11 @@ Cons:
 * Competing programs are comparable and cheaper
 
 ### Thoughts About the Program
-A little over a year ago, I got excited about machine learning and its applications to engineering, particularly system identification and optimal parameter tuning.  I wanted to learn more about fundamentals and how to solve practical problems with machine learning.  At the time, Udacity was starting to make some headway in online learning over competitors like [Coursera](coursera.org) and [edX](edx.org).  Udacity had established partnerships with members of industry and academia, and they were touting a [$6000 online Master's degree](https://www.udacity.com/courses/georgia-tech-masters-in-cs) through Georgia Tech.  I liked their core philosophy, so I thought that the [Machine Learning Nanodegree] looked very promising.
+A little over a year ago, I got excited about machine learning and its applications to engineering, particularly system identification and optimal parameter tuning.  I wanted to learn more about fundamentals and how to solve practical problems with machine learning.  At the time, Udacity was starting to make some headway in online learning over competitors like [Coursera](coursera.org) and [edX](edx.org).  Udacity had established partnerships with members of industry and academia, and they were touting a [$6000 online Master's degree](https://www.udacity.com/courses/georgia-tech-masters-in-cs) through Georgia Tech.  I liked their core philosophy, so I thought that the [Machine Learning Nanodegree](https://www.udacity.com/course/machine-learning-engineer-nanodegree--nd009t) looked very promising.
 
 The nanodegree program was expensive: $200 billed monthly!  There were additional incentives.  There was a one-third fee reduction for first-time students, and there was also a 50% rebate if the program was completed within one year.  The program consisted of several modules, each of which had a project.  The capstone project, required for successful completion, was chosen by the student.  I liked this.  I could see what areas/technologies particularly interested me and solve a relevant problem.  After completing my PhD in 2014, I hadn't done much study in fields outside of systems engineering or dynamical systems, so I was excited by the prospect of learning something new.  As an added challenge, the course was built on Python.  I knew little about Python programming, other than I knew several smart people who swore by it.  I felt that this would be a good platform for learning the language, since the modules had numerous code walkthroughs and in-lesson knowledge assessments.
 
-All of the above factors swayed me in my ultimate decision to enroll in the nanodegree.  Originally, I had intended to do a walkthrough of the nanodegree in this post, but I think I'd rather just write up some thoughts I have had on the program.  Interested parties can refer to [my work on GitHub](https://github.com/jwdinius/machine-learning).  
+All of the above factors swayed me in my ultimate decision to enroll in the nanodegree.  Originally, I had intended to do a walkthrough of the nanodegree in this post, but I think I'd rather just write up some thoughts I have had on the program.
 
 I will begin by discussing what I think regarding the prerequisites for the program.  I can say that a working familiarity with linear algebra, multivariable calculus, and probability is _required_.  Whatever the Udacity folks may say, I believe that even motivated individuals without this core knowledge are going to struggle.  Particular focus areas include:
 
