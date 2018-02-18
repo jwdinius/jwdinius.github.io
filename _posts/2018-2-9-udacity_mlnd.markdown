@@ -2,7 +2,7 @@
 layout: post
 title:  Machine Learning Nanodegree Summary
 description: learning applications of machine learning in multiple analytic disciplines
-date:   2017-5-31 12:00:00
+date:   2017-6-19 12:00:00
 comments: true
 ---
 
