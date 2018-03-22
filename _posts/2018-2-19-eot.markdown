@@ -16,7 +16,7 @@ Now that I am no longer working on that project, I have decided to revisit the a
 
 ### The Problem
 
-It's probably best to just demonstrate the problem via a [video](https://youtu.be/KrQWqaVuSvU).
+It's probably best to just demonstrate the problem via a [video](https://youtu.be/mPgtW6CdXIU).
 
 You can see that a grouping of points, varying in number at each time step, moves with a high degree of correlation over time.  It seems that the points themselves have a spread that lies along the apparent direction of motion.  Furthermore, it seems one could encapsulate the points within a convex shape, the size, orientation, and speed of which could be tracked via standard methods, i.e. a Kalman filter.  Well, that's what I'm building up to, so far I just have the simulated sensor model up and running, so I'll talk about that.
 
