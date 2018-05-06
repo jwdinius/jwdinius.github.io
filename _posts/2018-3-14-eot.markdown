@@ -2,7 +2,7 @@
 layout: post
 title:  Extended Object Tracking - Groundwork
 description: using JUCE to build a simple multi-threaded application to model extended object measurements
-date:   2018-2-19 18:30:00
+date:   2018-3-14 18:30:00
 comments: true
 ---
 
@@ -34,4 +34,4 @@ The measurement model itself comes from the author's original [Matlab implementa
 
 ### What's Coming Next?
 
-I intend to update my [repo](https://github.com/jwdinius/extended-object-tracking) with an unscented Kalman filter model implementing the algorithm discussed in the previously mentioned paper.  I don't have an ETC on this at the moment, so stay tuned.  Cheers!
+I intend to update my [repo](https://github.com/jwdinius/extended-object-tracking) with an extended Kalman filter model implementing the algorithm discussed in the previously mentioned paper.  I don't have an ETC on this at the moment, so stay tuned.  Cheers!

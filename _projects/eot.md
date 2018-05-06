@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Extended Object Tracking
-description: State, size, and orientation tracking of an extended elliptical object
+description: Tracking an ellipse
 img: /assets/img/eot_tn.png
 use_math: true
 ---
