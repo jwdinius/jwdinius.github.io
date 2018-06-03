@@ -21,6 +21,7 @@ twitter_username: fractalisman # put your twitter username
 linkedin_username: joedinius1 # put your linkedin username
 #scholar_authorid: # put your google scholar author id
 contact_note:
+google_analytics: UA-XXXXXXXXX # out your google-analytics code
 
 # -----------------------------------------------------------------------------
 # Blog
@@ -72,8 +73,9 @@ highlighter: pygments
 # Includes
 include: ['_pages']
 
-# Gems
-gems:
+# Plug-ins
+plugins:
+    - jekyll-email-protect
     - jekyll-paginate
     - jekyll/scholar
     - jemoji
@@ -106,5 +108,5 @@ scholar:
 # Other settings
 # -----------------------------------------------------------------------------
 jquery_version: "1.12.4"
-katex_version: "0.8.3"
+katex_version: "0.9.0"
 anchorjs_version: "3.2.2"
