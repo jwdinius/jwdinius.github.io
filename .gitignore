@@ -4,4 +4,7 @@ _site
 .DS_store
 .ruby-version
 Gemfile.lock
+assets/tex/*.aux
+assets/tex/*.log
+assets/tex/*.out
 
