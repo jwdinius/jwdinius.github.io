@@ -7,4 +7,5 @@ Gemfile.lock
 assets/tex/*.aux
 assets/tex/*.log
 assets/tex/*.out
+assets/tex/*.dvi
 

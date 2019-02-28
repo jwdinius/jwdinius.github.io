@@ -4,7 +4,7 @@
 %
 %This work is licensed under the Creative Commons Attribution-Noncommercial-Share Alike 2.5 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/2.5/ or send a letter to Creative Commons, 543 Howard Street, 5th Floor, San Francisco, California, 94105, USA.
 
-\documentclass[letterpaper,14pt]{article}
+\documentclass[letterpaper,18pt]{article}
 \newlength{\outerbordwidth}
 \pagestyle{empty}
 \raggedbottom
@@ -87,7 +87,7 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Summary Statement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\indent I am an experienced systems and software engineer seeking opportunities in autonomous systems or related fields.  I am a fast learner, self-starting, and have completed projects in sensing and estimation, path planning, localization, and computer vision for autonomous vehicles.  I enjoy finding novel techniques to reduce complexity and improve system design.  I strive to communicate clearly, candidly, and respectfully.
+\indent I am an experienced systems engineer seeking new professional growth opportunities in robotics and autonomous systems.  I am a fast learner, a motivating force, and have led technical efforts in sensing and estimation, path planning, localization, and computer vision in the robotics-domain.  On the technical side, I enjoy solving novel problems creatively and, most importantly, timely.  On the leadership side, I focus on regular interpersonal communication, making expectations plainly known, and on identifying and providing any support necessary for optimal team output.  In everything I do, I strive to communicate clearly, candidly, and respectfully.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Professional Experience}
@@ -98,10 +98,11 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
 	\headerrow{\emph{Staff Research Scientist - Perception \& Controls}}{December 2017 -- Present}
 	{\small
 	\begin{itemize}[noitemsep]
-		\resitem{Responsible for development of control and localization algorithms for wheeled mobile robots}
-		\resitem{Developed a novel extension of a known architecture for trajectory-tracking}
-		\resitem{Increased robot speed 2.5x in 2 months}
-		\resitem{Other responsibilities include cycle-time reduction, build management, system test, and obstacle avoidance.}
+		\resitem{Responsible for development of control, navigation, and localization algorithms for wheeled mobile robots for a warehouse automation application}
+		\resitem{Increased coarse navigation speed 2.5x in 2 months through a novel method}
+        \resitem{Increased navigation accuracy on precision maneuvers by over 2x while simultaneously increasing speed by 2x}
+            \resitem{Organize ongoing efforts for personal and professional growth of development team members}  
+        \resitem{Other responsibilities include cycle-time reduction, build management (CI and configuration control), system test, and obstacle avoidance.}
 	\end{itemize}
 	}
 \item
@@ -127,10 +128,9 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
 	\headerrow{\emph{Senior Systems Engineer II}}{June 2006 -- December 2015}
 	{\small
 	\begin{itemize}[noitemsep]
-	 \resitem{Led small teams in simulation, control, and signal/image processing disciplines}
+	 \resitem{Led teams in simulation, control, and signal/image processing disciplines}
 	 \resitem{Directed analyses of flight test failure, operational safety, requirements development, and system performance}
-	 \resitem{Designed and developed simulation architectures for new product development efforts}
-	 \resitem{Created physics- and requirements-based models of environment and hardware to simulate missile system operation and assess performance}
+     \resitem{Designed and developed simulation architectures for new product development efforts (DARPA/MDA/etc)}
 	  \resitem{Developed guidance, navigation, and control (GNC) algorithms in simulation, Computer-in-the-Loop (CiL) and Hardware-in-the-Loop (HiL) environments}
 	\end{itemize}
 	}
@@ -145,31 +145,22 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
 	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Developed a performant representation of a cutting-edge algorithm for extended object tracking using elliptical primitive shapes}
-		\resitem{Built a simulation and multi-thread infrastructure layer for testing the algorithm in a representative environment}
+		\resitem{Built a simulation and multi-threaded infrastructure layer for testing the algorithm in a representative environment}
 		\resitem{Technologies Used: C++, JUCE}
-	\end{itemize}
-	}
-\item
-	\headerrow{\textbf{Differential Drive ROS Robot}}{June 2017}
-	{\small
-	\begin{itemize}[noitemsep]
-		\resitem{Built a differential drive robot that navigated around obstacles to a desired goal using COTS parts}
-		\resitem{April tags were used for localization (using a Raspberry Pi camera), Kalman filters using position and commanded speed were used for navigation, and ROS Catkin was used for interprocess communication and vehicle control}
-		\resitem{Technologies Used: Raspberry Pi, ROS, Python}
 	\end{itemize}
 	}
 \item
         \headerrow{\textbf{Single Shot Detection using Sliding Windows}}{April 2017}
         {\small
 	\begin{itemize}[noitemsep]
-	        \resitem{Built a support vector machine classifier to detect cars in a monocular video stream}
-		\resitem{Performed feature extraction to increase classifier accuracy}
+	    \resitem{Built a support vector machine classifier to detect cars in a monocular video stream}
+		\resitem{Performed feature extraction using OpenCV to increase classifier accuracy}
 		\resitem{Developed a blob detector to find minimal bounding boxes around detected objects}
-		\resitem{Implemented Kalman filter to smooth bounding box transients}
+		\resitem{Implemented a Kalman filter to smoothly track bounding boxes}
 		\resitem{Technologies Used: Python, OpenCV, Scikit-learn}
 	\end{itemize}
 	}
-	\newpage
+    %\newpage
 \item
 	\headerrow{\textbf{Traffic Sign Classification Using Convolutional Neural Networks}}{March 2017}
 	{\small
@@ -188,9 +179,10 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
    OS &: Windows, OS X, Ubuntu\\
     Languages &: C++ (mostly post-11 standard), Python (2.7+), Fortran (77,90/95) \\
     Software \ &: Eigen, Scikit-image, Scikit-learn, Tensorflow, Keras, OpenCV, Matlab/Simulink, git, gdb(pdb), \\
-    & \ valgrind, numpy, scipy, pandas, \LaTeX \\
+    & \ cmake, valgrind, numpy, scipy, pandas, \LaTeX , Boost, IPOPT \\
    Other &: Kalman filtering, particle filtering, localization, computer vision, machine learning, \\
-   & \ optimal control, design-of-experiments (DoE), data exploration \& visualization
+   & \ state-space control design, optimal control, design-of-experiments (DoE), \\
+    & \ data exploration \& visualization
 \end{tabular} \\
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -243,15 +235,6 @@ Los Angeles, CA 91377 & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmai
 		\resitem{\href{https://github.com/OSSDC}{Open Source Self Driving Car Initiative (OSSDC)}}
 	\end{itemize}
 	Check out my \href{https://github.com/jwdinius}{GitHub} for more details.
-	}
-\item
-	\headerrow{\textbf{CHiMES}}{Tucson, AZ}
-	\headerrow{\emph{Project Advisor}}{2014}
-	{\small
-	\begin{itemize}[noitemsep]
-	        \resitem{\textbf{C}ommunity \textbf{H}elpers in \textbf{M}athematics, \textbf{E}ngineering, and \textbf{S}ciences}
-		\resitem{Advised high school students as part of a university-led effort to engage them in developing engineering projects to impact their community.}
-	\end{itemize}
 	}
 \end{itemize}
 
