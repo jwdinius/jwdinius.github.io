@@ -1,8 +1,9 @@
 ---
-layout: page
+layout: post
 title: Traffic Sign Classifier
-description: Deep Neural Networks
-img: /assets/img/German_road_signs.jpg
+description: Multiclass inference using Tensorflow
+date:   2017-4-10 18:40:00
+comments: true
 ---
 
 ## Abstract
