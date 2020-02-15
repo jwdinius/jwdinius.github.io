@@ -47,15 +47,15 @@ where the slack variables $$x_{mn+j}, 0 \le j < n$$ are added to address the tar
 
 Okay, now that that's out of the way, we can state the purpose of this post:
 
->Are the constraints, as stated, reasonable for the problem at-hand?
+>Are the constraints, as stated, enough to ensure robust registration?
 
 The constraints presented assume that _every_ point in the source point cloud has a corresponding point in the target point cloud.  In practice, this presents an overly restrictive constraint for our matching problem.  What if there are outliers, for instance?  In this post, I will present a novel modification to the optimization problem above to allow for less restrictive, i.e. more robust, matching between point clouds.
 
 ## Relaxing the constraints means augmenting the state vector
 
-Let me first describe, in words, what I'd like to achieve:  I want an optimization problem that allows me to identify the subset, of size $$k<m$$, of source points that is best matched to a corresponding subset, also of size $$k$$, of target points.
+Let me first describe, in words, what I'd like to achieve:  I want an optimization problem that allows me to identify the subset, of size $$k \le m$$, of source points that is best matched to a corresponding subset, also of size $$k$$, of target points.
 
-In the formulation of the original problem, we required $$n$$ slack variables to account for the unmatched $$n-m$$ points in the target point set.  Now, since we are not matching $$m-k$$ points in the source distribution, we can add additional slack variables, $$m$$ of them, to achieve what we ultimately want.  These additional slack variables allow handling of source points that are _not_ matched to a target point.  Formally, the optimization problem, with constraints, is now:
+In the formulation of the original problem, we required $$n$$ slack variables to account for the unmatched $$n-m$$ points in the target point set.  Now, since we are not matching $$m-k$$ points in the source distribution, we can add additional slack variables, $$m$$ of them, to achieve what we ultimately want.  These additional slack variables allow handling of source points that are _not_ matched to any target point.  Formally, the optimization problem, with constraints, is now:
 
 >Find the vector $$\mathbf{x}^* \in \{0, 1\}^{(m+1)(n+1)}$$ that maximizes the quadratic objective function:
 >$$
@@ -88,9 +88,9 @@ In the formulation of the original problem, we required $$n$$ slack variables to
 Let's explain the contraints, one-by-one:
 
 * $$\sum_{j=0}^{n} x_{i(n+1)+j} = 1 \ \  \forall i \in [0, m)$$ means "every source point must be matched to either an actual or an augmented, e.g. slack, target point".
-* $$\sum_{j=0}^{n} x_{m(n+1)+j} = n - k$$ means "$$n-k$$ target points must not be associated to some source point".
+* $$\sum_{j=0}^{n} x_{m(n+1)+j} = n - k$$ means "$$n-k$$ target points must not be matched to any source points".
 * $$\sum_{i=0}^{m} x_{i(n+1)+j} = 1 \ \ \forall j \in [0, n)$$ means "every target point must be matched to either an actual or a slack source point".
-* $$\sum_{i=0}^{m} x_{i(n+1)+n} = m - k$$ means "$$m-k$$ source points must not be matched to some target point".
+* $$\sum_{i=0}^{m} x_{i(n+1)+n} = m - k$$ means "$$m-k$$ source points must not be matched to any target points".
 * $$x_{m(n+1)+n} = 0$$ means "the slack source point must not be matched to the slack target point".
 
 Lowering the dimension of the state vector $$\mathbf{x}$$ by 1 would effectively remove this last constraint, however I chose to keep it around because, in my opinion, it makes interpreting the other constraints easier.
