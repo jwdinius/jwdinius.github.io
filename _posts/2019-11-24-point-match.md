@@ -20,22 +20,22 @@ Here, the reader will see two sets of points, otherwise called _clouds_.  As dis
 <img src="/assets/img/point-set/aligned.png">
 </p>
 
-So, the \"source\" distribution is related to the \"target\" distribution by a homogeneous transformation; after applying this transformation, the _registration error_ is 0.  Why is this useful?  Well, if we have prior knowledge of the sensor state before observing the two point distributions, we could use this information to determine motion of the sensor and/or an object in between observations.  This information would be very useful in estimating sensor pose or tracking an object?
+So, the \"source\" distribution is related to the \"target\" distribution by a homogeneous transformation; after applying this transformation, the _registration error_ is 0.  Why is this useful?  Well, if we have prior knowledge of the sensor state before observing the two point distributions, we could use this information to determine motion of the sensor and/or an object in between observations.  This information would be very useful in estimating sensor pose or tracking an object.
 
 The million-dollar question then becomes:
 
 > How do we find the homogeneous transformation that best aligns the two point clouds?
 
-This question really requires the solutions to two problems:
+This question really requires the solution of two problems:
 
 * Find the _best_ set of correspondences between the source and target point clouds
-* Using the set of correspondences, find the optimal homogeneous transformation
+* Using that set of correspondences, find the optimal homogeneous transformation
 
 In this post, I discuss how to formulate the first problem mathematically.
 
 ## What is a \"correspondence\"?
 
-> A _correspondence_ is a way of defining similarity between points taken from two distinct point clouds, a source and a target.  \"Similarity\", in this sense, means invariance of the set pairwise distances between a Point A, from the source cloud, and other points in the source cloud when compared with a _corresponding_ Point B, from the target cloud, and _a subset_ of other points in the target cloud.
+> A _correspondence_ is a way of defining similarity between points taken from two distinct point clouds: the so-called _source_ and _target_ clouds.  \"Similarity\", in this sense, means invariance of the set pairwise distances between a Point A, from the source cloud, and other points in the source cloud when compared with a _corresponding_ Point B, from the target cloud, and _a subset_ of other points in the target cloud.
 
 I have added the caveat \"a subset\" because, in practice, it is assumed that the number of source points, $$m$$, is less than the number of target points, $$n$$.  This is to allow for more robust matching.
 
@@ -52,33 +52,38 @@ x_{in+j} = \begin{cases}
 \end{cases},
 $$
 
-$$i$$ is a point in the source cloud, $$j$$ is a point in the target cloud, $$m$$ is the number of source points, and $$n$$ is the number of target points.  $$m < n$$, by assumption; which avoids overconstraining the matching problem.
+$$i$$ is a point in the source cloud, $$j$$ is a point in the target cloud, $$m$$ is the number of source points, and $$n$$ is the number of target points.  $$m < n$$, by assumption, avoids overconstraining the matching problem.
 
-The "best correspondences" problem can be formulated as an optimization problem:  _find the vector_ $$\mathbf{x}^*$$ _that maximizes the quadratic objective function_:
+The "best correspondences" problem can be formulated as an optimization problem:
 
-$$
-f(\mathbf{x}) = \sum_{ijkl} w_{ijkl} x_{in+j} x_{kn+l}
-$$
+>Find the vector $$\mathbf{x}^*$$ that maximizes the quadratic objective function:
+>$$
+>\begin{eqnarray}
+>f(\mathbf{x}) = \sum_{ijkl} w_{ijkl} x_{in+j} x_{kn+l}
+>\end{eqnarray}
+>$$
+>
+>where
+>
+>$$
+>\begin{eqnarray}
+>w_{ijkl} = \exp{[-d_{ijkl}]} \\
+>d_{ijkl} = \bigl | ||\mathbf{p}_i - \mathbf{p}_k||_2 - ||\mathbf{p}_j - \mathbf{p}_l||_2 \bigr |.
+>\end{eqnarray}
+>$$
 
-where
+$$\mathbf{p}_i, \mathbf{p}_k$$ are the 3d cartesian coordinates of points $$i$$ and $$k$$ in the source cloud, whereas $$\mathbf{p}_j, \mathbf{p}_l$$ are the 3d cartesian coordinates of points $$j$$ and $$l$$ in the target cloud.
 
-$$
-\begin{eqnarray}
-w_{ijkl} = \exp{[-d_{ijkl}]} \\
-d_{ijkl} = \bigl | ||\mathbf{p}_i - \mathbf{p}_k||_2 - ||\mathbf{p}_j - \mathbf{p}_l||_2 \bigr |.
-\end{eqnarray}
-$$
-
-$$\mathbf{p}_i, \mathbf{p}_k$$ are the 3d cartesian coordinates of points $$i$$ and $$k$$ in the source cloud, whereas $$\mathbf{p}_j, \mathbf{p}_l$$ are the 3d cartesian coordinates of points $$j$$ and $$l$$ in the target cloud.  The $$d$$ value above is interpreted as a _pairwise consistency metric_: the smaller the value of $$d$$, the better the correspondence between the pair $$(i, k)$$ in the source cloud to the pair $$(j, l)$$ in the target cloud.  By adding the $$\exp[\cdot]$$ function, stronger correspondences will be weighted _exponentially_ higher than weaker ones, which will favor better matches during the search for the optimal $$\mathbf{x}^*$$.
+The $$d$$ value above is interpreted as a _pairwise consistency metric_: the smaller the value of $$d$$, the better the correspondence between the pair $$(i, k)$$ in the source cloud to the pair $$(j, l)$$ in the target cloud.  By adding the $$\exp[\cdot]$$ function, stronger correspondences will be weighted _exponentially_ higher than weaker ones, which will favor better matches during the search for the optimal $$\mathbf{x}^*$$.
 
 
 There are some additional factors to consider; namely, _what are the constraints on $$\mathbf{x}^*$$_?  For one, only one source point can be matched to a target point, and vice-versa.  Moreover, we want _every_ source point to be matched to a target point.  Mathematically, these constraints can be stated as:
 
 $$
 \begin{eqnarray}
-\sum_{j=0}^{n-1} x_{in+j} = 1 \\
+\sum_{j=0}^{n-1} x_{in+j} = 1  \ \  \forall i \in [0, m)\\
 \sum_{j=0}^{n-1} x_{mn+j} = n - m \\
-\sum_{i=0}^{m} x_{in+j} = 1
+\sum_{i=0}^{m} x_{in+j} = 1 \ \  \forall j \in [0, n)
 \end{eqnarray}
 $$
 
