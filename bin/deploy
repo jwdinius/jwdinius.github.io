@@ -98,7 +98,7 @@ echo "Deployed successfully!"
 echo "Zipping archive..."
 zip -r ../jwdinius.github.io.zip ../jwdinius.github.io
 
-echo "Pushing archive to Google Drive"
-gdrive upload --parent 1hDFpGdXd1OMwsVzANOL1wosP5VSbncvj ../jwdinius.github.io.zip
+#echo "Pushing archive to Google Drive"
+#gdrive upload --parent 1hDFpGdXd1OMwsVzANOL1wosP5VSbncvj ../jwdinius.github.io.zip
 
 exit 0
