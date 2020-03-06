@@ -17,6 +17,7 @@
 \usepackage{hyperref}
 \usepackage{tocloft}
 \usepackage{fancyhdr}
+\usepackage{textcomp}
 
 %-----------------------------------------------------------
 %Edit these values as you see fit
@@ -69,7 +70,7 @@
 
 \pagestyle{fancy}
 \fancyfoot{}
-\rfoot{\thepage \ of\ 2}
+\rfoot{\thepage \ of\ 3}
 \lfoot{Joe Dinius, PhD}
 \cfoot{\url{https://jwdinius.github.io}}
 %-----------------------------------------------------------
@@ -87,20 +88,41 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Summary Statement}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\indent I am an experienced robotics engineer seeking opportunities for both personal and professional growth.  I am a fast learner, a motivating force, and have led technical efforts in sensing and estimation, path planning, localization, and computer vision.  On the technical side, I enjoy solving new problems creatively and timely.  On the leadership side, I focus on regular interpersonal communication, making expectations plainly known, and on identifying and providing any support necessary for optimizing team output.  In everything I do, I strive to communicate clearly, candidly, and respectfully.
+\indent I am an experienced robotics engineer seeking technical leadership opportunities in autonomous systems development.  I am a fast learner, a motivating force, and have led technical efforts in sensing and estimation, path planning, localization, and computer vision.  On the technical side, I enjoy solving hard problems with creativity; employing solutions that others might not consider.  On the leadership side, I focus on regular interpersonal communication, making expectations plainly known, and on identifying and providing any support necessary for optimizing team output.  In everything I do, I strive to communicate clearly, candidly, and respectfully.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Professional Experience}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}[label={},leftmargin=*,noitemsep]
 \item
-    \headerrow{\textbf{UBTECH Robotics North American R\&D Center}}{Los Angeles, CA}
-        \headerrow{\emph{Senior Research Engineer -- Navigation \& Control}}{April 2019 -- Present}
+	\headerrow{\textbf{AeroVironment, Inc.}}{Simi Valley, CA}
+    \headerrow{\emph{Senior Staff Engineer -- Autonomy \& Robotics}}{December 2019 -- Present}
 	{\small
 	\begin{itemize}[noitemsep]
-		\resitem{Responsibilities include: software team recruiting, system requirements development, and navigation team oversight}
-		\resitem{Developing SLAM algorithms for operation in dynamic environments}
-        \resitem{Oversee ongoing software development efforts for initial prototype}
+		\resitem{Developing visual inertial odometry capability for autonomous aerial vehicles in multiple operational environments}
+        \resitem{Defining and helping to implement processes and methodologies for scaling autonomous capabilities within the company's product lines}
+	\end{itemize}
+	}
+\item
+    \headerrow{\textbf{UBTECH Robotics North American R\&D Center}}{Los Angeles, CA}
+        \headerrow{\emph{Senior Research Engineer -- Navigation \& Control}}{April 2019 -- December 2019}
+	{\small
+	\begin{itemize}[noitemsep]
+        \resitem{Was the first team hire for, and a key member in building, the software team}
+        \begin{itemize}[noitemsep]
+                \resitem{Developed interview process for software candidates; including coding challenge component and skill set questions for computer vision, navigation, and general software candidate interviews}
+                \resitem{Worked with external recruiters to identify screening criteria for candidates}
+                \resitem{Conducted $\sim$90\% of interviews initially, including technical panel interviews for hardware team candidates, but was able to delegate much of this responsibility as the team grew.}
+                \resitem{Grew the team from 1 to 15+ in 8 months.  Total team, including hardware and industrial design, grew to 35+}
+        \end{itemize}
+        \resitem{Led software development for initial vehicle prototype}
+        \begin{itemize}[noitemsep]
+                \resitem{Developed SLAM algorithms for operation in dynamic indoor environments using RGB-D cameras and 2d lidar}
+                \resitem{Worked closely with hardware design team to do sensor coverage analyses and hardware downselect in early stages}
+                \resitem{Led team of 3-5 individuals working on autonomously navigating mobile platform.  Milestone demo achieved in $\sim$4.5 months: Starting from concept-only (no drawings) to fully-functional MVP}
+		        \resitem{Created decentralized application infrastructure using Docker and ROS to streamline parallel development efforts within team}
+		        \resitem{Encouraged short feedback cycles between team and project leadership via daily standups, concise documentation of work, and frequent mini-demonstrations}
+        \end{itemize}
 	\end{itemize}
 	}
 \item
@@ -111,18 +133,30 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 		\resitem{Responsible for development of control, navigation, and localization algorithms for wheeled mobile robots deployed in a warehouse automation application}
         \begin{itemize}[noitemsep]
                 \resitem{Increased coarse navigation speed 2.5x in 2 months with a novel method}
-                \resitem{Increased navigation accuracy on precision maneuvers by over 2x while simultaneously increasing speed by 2x}
+                \resitem{Increased navigation accuracy on precision maneuvers by over 5x while simultaneously increasing speed by 2x; \textit{reduced inventory drops due to navigation failures} 10x}
         \end{itemize}
+		\resitem{Introduced processes that greatly increased system robustness}
+        \begin{itemize}[noitemsep]
+                \resitem{Integrated obstacle avoidance, both static and dynamic, into robot control algorithm}
+                \resitem{Built automated test procedure, including physical setup, for evaluating navigation performance (both control and localization accuracy) on precision approaches}
+                \resitem{Statistical experimental design for controller tuning based on Latin Hypercube sampling (coarse resolution) and Full-Factorial design (fine resolution)}
+                \resitem{Refactored trajectory planner, which resulted in $>$20x \textit{reduction in network traffic and memory consumption}, and added a scalable automated test suite}
+                \resitem{Safe and automatic recovery of robots after throwing and logging exceptions}
+        \end{itemize}
+        \resitem{Worked with Operations team to monitor and correct issues while running the system live at customer deployments}  
         \resitem{Organized ongoing efforts for personal and professional growth of team members: book club, game nights, and technical journal club}  
-        \resitem{Other responsibilities included: cycle-time reduction, build management (CI and configuration control), system identification and test, and obstacle avoidance.}
 	\end{itemize}
 	}
+%newpage coming
+\newpage
+%newpage ending
 \item
 	\headerrow{\textbf{Walt Disney Imagineering R \& D}}{Glendale, CA}
 	\headerrow{\emph{Senior R \& D Imagineer -- Contract Position}}{July 2017 -- October 2017}
 	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Responsible for developing scene segmentation and state estimation algorithms for multiple object tracking using 2D laser rangefinders}
+        \resitem{Created a simple multi-vehicle collision-free path planner using the Hybrid A* algorithm}
 	\end{itemize}
 	}
 \item
@@ -139,6 +173,10 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 	{\small
 	\begin{itemize}[noitemsep]
 	 \resitem{Led teams in simulation, control, and signal/image processing disciplines}
+        \begin{itemize}[noitemsep]
+                \resitem{Worked with team members to define performance targets for yearly reviews; contributed to performance reports and conducted reviews}
+                \resitem{Worked with team members' and their functional management to define performance improvement plans (PIP) when performance was unsatisfactory; worked with team members to increase likelihood of successfully executing the PIP. }
+        \end{itemize}
 	 \resitem{Directed analyses of flight test failure, operational safety, requirements development, and system performance}
      \resitem{Designed and developed simulation architectures for new product development efforts (DARPA/MDA/etc)}
 	  \resitem{Developed guidance, navigation, and control (GNC) algorithms in simulation, Computer-in-the-Loop (CiL) and Hardware-in-the-Loop (HiL) environments}
@@ -178,7 +216,6 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 		\resitem{\href{https://jwdinius.github.io/projects/eot/}{Project Writeup}, \href{https://github.com/jwdinius/extended-object-tracking}{Github}.  Technologies Used: C++, JUCE}
 	\end{itemize}
 	}
-    %\newpage
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,13 +223,17 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{tabular}{ll}
    OS &: Windows, OS X, Ubuntu\\
-    Languages &: C++ (post 11), Python (2 \& 3), Fortran (77 \& 90/95) \\
+    Languages &: Modern C++ (11/14/17 standards), Python, Fortran (77 \& 90/95) \\
     Software \ &: Eigen, Armadillo, Scikit-image, Scikit-learn, Tensorflow, Keras, OpenCV, Matlab/Simulink, git, \\
     & \ gdb(pdb), cmake, numpy, scipy, pandas, \LaTeX , Boost, IPOPT, ROS, fastai, PyTorch, docker \\
     Other &: Kalman filtering, particle filtering, SLAM, computer vision, signal processing, optimization, \\
     & \ machine learning (including deep learning), state-space control design, optimal control, \\
     & \ design-of-experiments (DoE), data exploration \& visualization
 \end{tabular} \\
+
+%newpage coming
+\newpage
+%newpage ending
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \resheading{Selected Publications \& Patents}
