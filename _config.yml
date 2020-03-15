@@ -32,7 +32,7 @@ blog_name: my blog
 blog_description: observations and such...
 
 # Pagination
-paginate: 100
+paginate: 10
 permalink: /blog/:year/:title/
 paginate_path: /blog/page:num/
 
