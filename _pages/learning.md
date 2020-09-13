@@ -5,6 +5,11 @@ title: learning
 description: Summary of coursework completed after graduate school
 ---
 
+## 2020
+* OpenCV Computer Vision 1: Introduction (C++) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-102.pdf %}) _with honors_
+* [Flying Car Nanodegree](https://classroom.udacity.com/nanodegrees/nd787/syllabus/core-curriculum) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/flying-car-nanodegree.pdf %})
+* [Embedded Systems Software Design](https://www.hardent.com/course/embedded-systems-software-design/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/Xilinx_EmbeddedSWDesign_Dinius_Aug2020.pdf %})
+
 ## 2018
 * [Self-Driving Car Engineer Nanodegree](https://classroom.udacity.com/nanodegrees/nd013/syllabus/core-curriculum) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/self-driving-car-nanodegree.pdf %})
 
