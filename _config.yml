@@ -2,6 +2,7 @@
 # Site settings
 # -----------------------------------------------------------------------------
 name: Joe Dinius
+title: Joe Dinius
 email: josephwdinius@gmail.com
 description: > # this means to ignore newlines until "url:"
   Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
@@ -20,7 +21,7 @@ github_username: jwdinius # put your github username
 twitter_username: fractalisman # put your twitter username
 linkedin_username: joedinius1 # put your linkedin username
 #medium_username: joedinius
-quora_username: Joe-Dinius-PhD
+#quora_username: Joe-Dinius-PhD
 #scholar_authorid: # put your google scholar author id
 contact_note:
 google_analytics: UA-XXXXXXXXX # out your google-analytics code

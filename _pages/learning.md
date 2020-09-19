@@ -6,9 +6,10 @@ description: Summary of coursework completed after graduate school
 ---
 
 ## 2020
-* OpenCV Computer Vision 1: Introduction (C++) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-102.pdf %}) _with honors_
+* [Embedded System Design for the Zynq UltraScale+ MPSoC](https://www.hardent.com/course/embedded-system-design-zynq-ultrascale-mpsoc-training/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/Xilinx_MPSoC_Aug2020.pdf %})
+* [Embedded Systems Software Design](https://www.hardent.com/course/embedded-systems-software-design/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/Xilinx_EmbeddedSWDesign_Dinius_June2020.pdf %})
 * [Flying Car Nanodegree](https://classroom.udacity.com/nanodegrees/nd787/syllabus/core-curriculum) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/flying-car-nanodegree.pdf %})
-* [Embedded Systems Software Design](https://www.hardent.com/course/embedded-systems-software-design/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/Xilinx_EmbeddedSWDesign_Dinius_Aug2020.pdf %})
+* OpenCV Computer Vision 1: Introduction (C++) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-102.pdf %}) _with honors_
 
 ## 2018
 * [Self-Driving Car Engineer Nanodegree](https://classroom.udacity.com/nanodegrees/nd013/syllabus/core-curriculum) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/self-driving-car-nanodegree.pdf %})
