@@ -140,6 +140,16 @@ bool findKNearestNeighbors(dlib::matrix<float, 0, 1> const& faceDescriptorQuery,
       neighbors.emplace_back(std::make_pair(faceLabels[i], distance));
     }
   }
+  
+  // do the sort (closest to -> furthest away)
+  std::sort(neighbors.begin(), neighbors.end(),
+      [](std::pair<int, double> const& p1, std::pair<int, double> const& p2){ return p1.second < p2.second; });
+    
+  // get k closest
+  matches.clear();
+  std::copy_n(neighbors.begin(), k, std::back_inserter(matches));
+  return true;
+}
 ```
 
 This code is quite simple.  I loop over all of the descriptors in the database and evaluate the closest distance per-label for all descriptors.  I then sort the output from this stage, with the closest matches first, and return a user-specified number of the best matches (see `k` in the function signature for `findKNearestNeighbors` above). 
