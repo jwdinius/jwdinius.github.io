@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Extended Object Tracking
-description: Tracking an ellipse
+description: Joint shape and state estimation
 img: /assets/img/eot_tn.png
 use_math: true
 ---

@@ -1,7 +1,7 @@
 ---
 layout: page
-title: Traffic Sign Identification
-description: State-of-the-Art Multilabel Classification
+title: Traffic Sign Classification
+description: SOTA Classification with PyTorch/fastai
 img: /assets/img/German_road_signs.jpg
 ---
 
