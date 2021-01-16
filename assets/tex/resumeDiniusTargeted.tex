@@ -99,18 +99,19 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
     \headerrow{\emph{Manager -- Autonomy \& Robotics}}{March 2020 -- Present}
 	{\small
 	\begin{itemize}[noitemsep]
-        \resitem{Transitioned to functional leadership role shortly after joining: (\textit{14 direct reports})}
+        \resitem{Transitioned to functional leadership role shortly after joining: (\textit{$\sim$15 direct reports})}
         \begin{itemize}[noitemsep]
+                \resitem{Grew the team from 11 to 16 full-time members in my first 10 months}
                 \resitem{Developing learning initiatives to grow in-house expertise in new technology foci for the company: \textit{computer vision, machine learning, sensing \&  perception, and visual navigation}}
-                \resitem{Technical lead (upwards of 7 team members) on single vehicle autonomy R \& D team.  Responsibilities include program management, application infrastructure development for fixed-wing and multirotor craft, and visual navigation algorithm development and testing}
-                \resitem{Initiator and champion of several internal process improvement efforts: \textit{Legacy CM/CI to Gitlab, containers for application development and deployment, and embracing open-source projects}}
+                \resitem{Initiator and champion of several internal process improvement efforts: \textit{Legacy CM/CI to Gitlab, Docker containers for application development and deployment, and embracing open-source projects for rapid software development}}
+                \resitem{Technical lead (upwards of 7 team members) of autonomy R \& D projects (fixed-wing and multirotor).  Responsibilities include program management, application infrastructure development, visual navigation algorithm development, image processing, 3D scene reconstruction (mapping), and visual target detection and tracking}
         \end{itemize}
 	\end{itemize}
 	}
     \headerrow{\emph{Senior Staff Engineer -- Autonomy \& Robotics}}{December 2019 -- March 2020}
 	{\small
 	\begin{itemize}[noitemsep]
-        \resitem{Developed robust visual navigation capability for autonomous aerial vehicles with multiple monochrome imagers (with different quantum efficiencies) for indoor and outdoor environments}
+        \resitem{Developed robust visual navigation capability for autonomous aerial vehicles with multispectral monochromatic imagers for indoor and outdoor environments}
 	\end{itemize}
 	}
 \item
@@ -168,7 +169,7 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Responsible for developing scene segmentation and state estimation algorithms for multiple object tracking using 2D laser rangefinders}
-        \resitem{Created a simple multi-vehicle collision-free path planner using the Hybrid A* algorithm}
+        \resitem{Created a simple multivehicle collision-free path planner using the Hybrid A* algorithm}
 	\end{itemize}
 	}
 \item
@@ -201,6 +202,16 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}[label={},leftmargin=*,noitemsep]
 \item
+        \headerrow{\textbf{Real-Time Face Mask Detection}}{Dec 2020}
+        {\small
+	\begin{itemize}[noitemsep]
+        \resitem{Trained YOLOv4 single-stage object detector using DarkNet}
+            \resitem{Deployed trained model in a multithreaded Linux command line application (C++) using OpenCV's Deep Neural Network API}
+        \resitem{Achieved real-time (input frame-rate $\sim$= output frame-rate) inference using GPU acceleration}
+        \resitem{\href{https://jwdinius.github.io/projects/mask_detector/}{Project Writeup}, \href{https://github.com/jwdinius/yolov4-mask-detector}{Github}.  Technologies Used: C++(14), DarkNet, OpenCV, docker}
+	\end{itemize}
+	}
+\item
         \headerrow{\textbf{Traffic Sign Recognition using fastai}}{July 2019}
         {\small
 	\begin{itemize}[noitemsep]
@@ -224,7 +235,7 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 	{\small
 	\begin{itemize}[noitemsep]
 		\resitem{Developed a performant representation of a cutting-edge algorithm for extended object tracking using elliptical primitive shapes}
-		\resitem{Built a simulation and multi-threaded infrastructure layer for testing the algorithm in a representative environment}
+		\resitem{Built a simulation and multithreaded infrastructure layer for testing the algorithm in a representative environment}
 		\resitem{\href{https://jwdinius.github.io/projects/eot/}{Project Writeup}, \href{https://github.com/jwdinius/extended-object-tracking}{Github}.  Technologies Used: C++, JUCE}
 	\end{itemize}
 	}
@@ -240,7 +251,7 @@ Los Angeles, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}
 \begin{tabular}{ll}
    OS &: Windows, OS X, Ubuntu\\
     Languages &: Modern C++ (11/14/17 standards), Python, Fortran (77 \& 90/95) \\
-    Software \ &: Eigen, Armadillo, Scikit-image, Scikit-learn, Tensorflow, Keras, OpenCV, Matlab/Simulink, git, \\
+    Software \ &: Eigen, Armadillo, Scikit-image, Scikit-learn, OpenCV, Matlab/Simulink, git, \\
     & \ gdb(pdb), cmake, numpy, scipy, pandas, \LaTeX , Boost, IPOPT, ROS, fastai, PyTorch, docker, \\
     & \ Jira, Confluence, Xilinx Vivado, Petalinux, CircleCI, Coveralls \\
     Other &: Kalman filtering, particle filtering, SLAM, computer vision, signal processing, optimization, \\
