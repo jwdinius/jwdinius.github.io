@@ -5,6 +5,9 @@ title: learning
 description: Summary of coursework completed after graduate school
 ---
 
+## 2021
+* [OpenCV Deep Learning with PyTorch](https://opencv.org/courses/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-106.pdf %}) _with honors_
+
 ## 2020
 * [OpenCV Computer Vision II: Applications (C++)](https://opencv.org/courses/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-104.pdf %}) _with honors_
 * [Embedded System Design for the Zynq UltraScale+ MPSoC](https://www.hardent.com/course/embedded-system-design-zynq-ultrascale-mpsoc-training/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/Xilinx_MPSoC_Aug2020.pdf %})
