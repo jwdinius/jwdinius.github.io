@@ -6,6 +6,8 @@ description: Summary of coursework completed after graduate school
 ---
 
 ## 2021
+* [Parallel and Concurrent Programming with C++ Part 2](https://www.linkedin.com/learning/parallel-and-concurrent-programming-with-c-plus-plus-part-2) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/linkedin-parallel-programming-2.pdf %})
+* [Parallel and Concurrent Programming with C++ Part 1](https://www.linkedin.com/learning/parallel-and-concurrent-programming-with-c-plus-plus-part-1) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/linkedin-parallel-programming-1.pdf %})
 * [OpenCV Deep Learning with PyTorch](https://opencv.org/courses/) - [Certificate]({{ site.baseurl }}{% link /assets/pdf/certificates/OpenCV-106.pdf %}) _with honors_
 
 ## 2020
