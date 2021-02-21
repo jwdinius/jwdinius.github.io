@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  Walkthrough of Maximum Clique Calculation
+title:  Finding Point Cloud Correspondences Using Undirected Graphs
 description: Using graph-based methods to identify correspondences between point clouds
 date:   2021-2-20 07:30:00
 comments: true
