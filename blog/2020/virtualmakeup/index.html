@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Virtual Makeup Project Writeup</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2020/virtualmakeup/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"></path>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"></path>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Virtual Makeup Project Writeup</h1>
+    <p class="post-meta">October 11, 2020</p>
+  </header>
+
+  <article class="post-content">
+    <h1 id="introduction">Introduction</h1>
+<p>I am currently enrolled in the OpenCV course “Computer Vision II: Applications (C++)”.  For the first project, I had to implement two personal “improvement” features to be applied to a test image (shown below):</p>
+
+<p><img src="/assets/img/girl-no-makeup.jpg" alt="test-image"></p>
+
+<p>In this blog post, I present the writeup for the project.</p>
+
+<h1 id="writeup">Writeup</h1>
+<p>For my two features, I chose to implement virtual lipstick application and virtual blush application.  I will present a walkthrough of the rationale and solution for each feature in subsections below.  In each subsection, I will discuss the problem statement, background research I conducted before attempting a solution, and the final solution.</p>
+
+<h2 id="feature-1-virtual-lipstick">Feature 1: Virtual Lipstick</h2>
+<p>The point of this feature is to implement a <em>natural-looking</em> overlay of a user-defined lip color applied to the test image shown above.  “Natural-looking” is the important part of the previous sentence: the variation in luminance in the new image with lipstick applied should be consistent with the original image.</p>
+
+<p>Before beginning, I did a bit of research to find starting reference material to help me think about the problem.  The first reference I found was <a href="https://www.learnopencv.com/cv4faces-best-project-award-2018/">this</a>.  In this post, I found a brief description of a competition-winning project, <em>AutoRetouch</em>, which introduced a lipstick application approach with a very good example of the application showing a near-seamless application of a different shade of lipstick applied to a test image, with both before and after photos for comparison.  The description of the application stated:</p>
+
+<blockquote>
+  <p>This algorithm automatically created a lip mask based on the facial landmark detected using Dlib’s model. Naively blending color on top of the lips does not produce good results, and so he manipulated the chroma components of color while keeping luminance constant.</p>
+</blockquote>
+
+<p>So, the key takeaways from this for me were:</p>
+<ul>
+  <li>Use Dlib’s facial landmark model to build a lip mask</li>
+  <li>Use colorspace conversion to transform the problem to a colorspace where luminance and chroma components of color can be manipulated instead of BGR colors</li>
+</ul>
+
+<p>Next, I thought about what the right rule for transforming lip pixels from the test image would be to ensure that the transformation looked natural.  In other words, I wanted to find a reference that could help to explain to me how to preserve the underlying variation in the original test image despite doing color modifications in the output image.  While searching, I found this <a href="https://www.pyimagesearch.com/2014/06/30/super-fast-color-transfer-images/">article</a> from PyImageSearch about color transfer between images.  This article is great because it outlines a sequence of steps for doing the color conversion (to the L*a*b* colorspace).  Particularly useful were Steps 6 and 7:</p>
+
+<blockquote>
+  <p>Step 6: Scale the <code class="language-plaintext highlighter-rouge">target</code> channels by the ratio of the standard deviation of the <code class="language-plaintext highlighter-rouge">target</code> divided by the standard deviation of the <code class="language-plaintext highlighter-rouge">source</code>, multiplied by the <code class="language-plaintext highlighter-rouge">target</code> channels.</p>
+
+  <p>Step 7: Add in the means of the L*a*b* channels for the <code class="language-plaintext highlighter-rouge">source</code>.</p>
+</blockquote>
+
+<p>I found this approach to be really interesting and useful in the current context because it discusses an approach for taking the desired target channel intensities at each pixel and scaling/translating them to better match the source channel intensities.  The application described is different than my desired application, however I was able to pull out the following for my solution:</p>
+
+<ul>
+  <li>I only care about changing the pixel values corresponding to the lips in the target image, so after creating a lip mask, I will compute the statistics (mean and standard deviation) on only the lip pixels in the test image (converted to an alternate colorspace with luminance channel)</li>
+  <li>The color I want to apply is constant (just some BGR value corresponding to lipstick color) - so the standard deviation in my target will be 0.  <em>I only need to consider variation in the test image, not in the shade of lipstick applied over the lip mask.</em>
+</li>
+</ul>
+
+<p>From these takeaways, I was able to put together a solution that created the following output image (from the initial test image shown above):</p>
+
+<p><img src="/assets/img/girl-lipstick.jpg" alt="test-image"></p>
+
+<p>I’ll now discuss the solution in more detail.</p>
+
+<h3 id="solution">Solution</h3>
+
+<p>The process flow I followed was quite simple:</p>
+
+<ul>
+  <li>Construct a binary image mask using Dlib’s facial landmark detector and the <code class="language-plaintext highlighter-rouge">fillPoly</code> method from OpenCV</li>
+  <li>Blur the mask to soften the transition from pixels adjacent to the lips to the lips, themselves</li>
+  <li>Convert test image to alternate colorspace, compute statistics on lip pixels, and then use those statistics to transform the desired lipstick color to a natural embedding for the test image</li>
+</ul>
+
+<p>I’ll discuss each of these approaches in more detail:</p>
+
+<h4 id="identify-lip-pixels">Identify lip pixels</h4>
+
+<p>There were several examples in the first two weeks of the course that showed how to setup a Dlib facial landmark detector, so I reused some of that code as a starting point.  After running the facial landmark detector on the test image, I was able to pass those landmark points, along with the original image, to create a mask denoting the lip pixels in the target image with the following source code:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">computeLipMask</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">im</span><span class="p">,</span> <span class="n">full_object_detection</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="o">&amp;</span><span class="n">mask</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span> <span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="n">points</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">landmarks</span><span class="p">.</span><span class="n">num_parts</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="n">points</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="p">(</span><span class="n">landmarks</span><span class="p">.</span><span class="n">part</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">x</span><span class="p">(),</span> <span class="n">landmarks</span><span class="p">.</span><span class="n">part</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">y</span><span class="p">()));</span>
+  <span class="p">}</span>
+  <span class="c1">// top</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">indicesTop</span> <span class="o">=</span> <span class="p">{</span><span class="mi">64</span><span class="p">,</span> <span class="mi">63</span><span class="p">,</span> <span class="mi">62</span><span class="p">,</span> <span class="mi">61</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">};</span> 
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="n">pointsTop</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">i</span> <span class="o">:</span> <span class="n">indicesTop</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">pointsTop</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+  <span class="p">}</span>
+
+  <span class="c1">// bottom</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">indicesBottom</span> <span class="o">=</span> <span class="p">{</span><span class="mi">54</span><span class="p">,</span> <span class="mi">55</span><span class="p">,</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">57</span><span class="p">,</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">59</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">67</span><span class="p">,</span> <span class="mi">66</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">64</span><span class="p">};</span> 
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="n">pointsBottom</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">i</span> <span class="o">:</span> <span class="n">indicesBottom</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">pointsBottom</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+  <span class="p">}</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">polys</span> <span class="o">=</span> <span class="p">{</span> <span class="n">pointsTop</span><span class="p">,</span> <span class="n">pointsBottom</span> <span class="p">};</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">fillPoly</span><span class="p">(</span> <span class="n">mask</span><span class="p">,</span> <span class="n">polys</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the source code above, I created two masks: one for the top lip and one for the bottom.  These two polygons were created by tracing the points <em>clockwise</em> around each lip contour.  <code class="language-plaintext highlighter-rouge">fillPoly</code> takes in a <code class="language-plaintext highlighter-rouge">std::vector</code> of a <code class="language-plaintext highlighter-rouge">std::vector</code> of <code class="language-plaintext highlighter-rouge">cv::Point</code> objects and the resulting output is the desired mask.</p>
+
+<h4 id="soften-the-transition-from-lip-to-non-lip-and-vice-versa">Soften the transition from lip to non-lip (and vice-versa)</h4>
+
+<p>The binary mask created in the last step will most likely lead to a very dramatic transition around the lip boundary.  Because a major goal of this application is natural-looking output, I want to blur the mask to allow non-zero contribution of the desired lip color to pixels just outside the lip boundary.  Moreover, I would like to have the transition to inside the lip region from outside to be smooth across the boundary.  I decided the best way to achieve this would be to apply a Gaussian blur to the binary mask found in the previous step.  Here’s the code:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">blurLipMask</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="o">&amp;</span><span class="n">mask</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Size</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">size</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">Size</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">size</span><span class="p">.</span><span class="n">height</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">||</span> <span class="n">size</span><span class="p">.</span><span class="n">width</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+  <span class="k">auto</span> <span class="n">maskCopy</span> <span class="o">=</span> <span class="n">mask</span><span class="p">.</span><span class="n">clone</span><span class="p">();</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">blurMask</span><span class="p">;</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">blurMask</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="n">blurMask</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">CV_32F</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="mi">255</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This code is <em>very</em> simple.  The default value for the blur kernel size is <code class="language-plaintext highlighter-rouge">(0, 0)</code>, which means that no blur will be applied; i.e. the “blurred” mask will be the same as the original binary mask.  However, if the user passes a non-trivial kernel size, a blurred mask, scaled to a floating point value in the interval <code class="language-plaintext highlighter-rouge">[0, 1]</code>, is returned by reference via the <code class="language-plaintext highlighter-rouge">mask</code> variable.  Now, we have a non-binary mask that can be used to smooth the transitions.</p>
+
+<h4 id="apply-lipstick">Apply lipstick</h4>
+
+<p>There are a few steps that I followed for applying the lipstick.  I will present the source code implementation, which has these steps outlined in commented blocks.  I will explain each step block-by-block.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">applyLipstick</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="o">&amp;</span><span class="n">im</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">mask</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Scalar</span> <span class="k">const</span> <span class="o">&amp;</span> <span class="n">color</span><span class="p">)</span> <span class="p">{</span>
+  <span class="c1">// "color" is the BGR value of the desired lipstick shade</span>
+  <span class="c1">// STEP 1: get YCrCb decomposition of input image and desired lip color</span>
+  <span class="c1">// STEP 1.1: input image</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imClr</span><span class="p">;</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">imClr</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">COLOR_BGR2YCrCb</span><span class="p">);</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imClrFlt</span><span class="p">;</span>
+  <span class="n">imClr</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">CV_32FC3</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="c1">// STEP 1.2: desired lip color</span>
+  <span class="k">auto</span> <span class="n">convertColor</span> <span class="o">=</span> <span class="p">[</span><span class="o">&amp;</span><span class="p">]()</span> <span class="p">{</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">YCrCb</span><span class="p">;</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">BGR</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CV_8UC3</span><span class="p">,</span> <span class="n">color</span><span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">BGR</span><span class="p">,</span> <span class="n">YCrCb</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">COLOR_BGR2YCrCb</span><span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">YCrCbflt</span><span class="p">;</span>
+    <span class="n">YCrCb</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">YCrCbflt</span><span class="p">,</span> <span class="n">CV_32FC3</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="mi">255</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">YCrCbflt</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="p">};</span>
+  <span class="k">auto</span> <span class="n">lipstickYCrCb</span> <span class="o">=</span> <span class="n">convertColor</span><span class="p">();</span>
+
+  <span class="c1">// STEP 2: compute weighted mean of lip pixels in YCrCb colorspace</span>
+  <span class="k">auto</span> <span class="n">m</span> <span class="o">=</span> <span class="n">maskedMean</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">mask</span><span class="p">);</span>
+
+  <span class="c1">// STEP 3: apply alpha blending to pixels with non-zero value in the mask</span>
+  <span class="c1">// this alpha blending utilizes the following scheme:</span>
+  <span class="c1">// - apply weight (equal to the mask pixel value) to the desired YCrCb lip color + a translation that incorporates variation in the source image</span>
+  <span class="c1">// - apply weight (equal to 1 - mask pixel value) to the original pixel in the source image transformed to YCrCb colorspace</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">cols</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">auto</span> <span class="n">mpxl</span> <span class="o">=</span> <span class="n">mask</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">mpxl</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">auto</span> <span class="o">&amp;</span><span class="n">srcPxlClr</span> <span class="o">=</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">idx</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpxl</span> <span class="o">*</span> <span class="p">(</span> <span class="n">lipstickYCrCb</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">mpxl</span><span class="p">)</span> <span class="o">*</span> <span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="c1">// STEP 4: convert transformed image back to BGR and change depth to 8-bit unsigned int</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imFlt</span><span class="p">;</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">imFlt</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">COLOR_YCrCb2BGR</span><span class="p">);</span>
+  <span class="n">imFlt</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">CV_8UC3</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Step 1 is pretty trivial: using OpenCV’s built-in colorspace conversion routines, I was able to efficiently convert the source image and the target lip color to Y*Cr*Cb*.  The only thing worth noting here is the <code class="language-plaintext highlighter-rouge">convertColor</code> lambda created to convert a single <code class="language-plaintext highlighter-rouge">cv::Scalar</code>.  From some StackOverflow searches, this seemed the best way to accomplish the desired conversion, but it still seems a little inefficient having to create a 1x1 image, transform it to the desired colorspace, and then return the first pixel channel values for the transformed color.  <em>Why choose Y*Cr*Cb* you might ask?</em>  Simple: the hint from the first reference I found suggested that the AutoRetouch approach might have used this colorspace to achieve its impressive results.</p>
+
+<p>Step 2 requires some discussion.  I wanted to match the underlying distribution of lip pixels in the test image <em>exactly</em> in the output image: i.e. if a pixel is 2 standard deviations from the mean value for lip pixels in the source image, I want that same pixel in the output image to be 2 standard deviations from the now <em>new</em> mean value (determined by the desired lip color).  As you’ll see above, there is no standard deviation being calculated or used.  <em>Don’t we need the standard deviation?</em>  The answer is “no”; <em>because I am targeting the same standard deviation over lip pixels in the output image as for the test image, the standard deviation is not used at-all by this approach.</em>  For some justification about why this should work, you can check out Steps 6 and 7 from the <a href="https://www.pyimagesearch.com/2014/06/30/super-fast-color-transfer-images/">source</a> that I referenced above.  Because the test and output image standard deviations are the same, the scaling to be applied is unity, so the standard deviation does not need to be computed.  To compute the mean, I implemented the <code class="language-plaintext highlighter-rouge">maskedMean</code> function below:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">auto</span> <span class="n">maskedMean</span> <span class="o">=</span> <span class="p">[](</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">img</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">mask</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span> <span class="n">out</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="kt">float</span> <span class="n">N</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">img</span><span class="p">.</span><span class="n">rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">img</span><span class="p">.</span><span class="n">cols</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">auto</span> <span class="n">mpxl</span> <span class="o">=</span> <span class="n">mask</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">mpxl</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">N</span> <span class="o">+=</span> <span class="n">mpxl</span><span class="p">;</span>
+        <span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span> <span class="n">pxl</span> <span class="o">=</span> <span class="n">img</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+        <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">idx</span><span class="p">)</span> <span class="p">{</span>
+          <span class="n">out</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="n">mpxl</span> <span class="o">*</span> <span class="n">pxl</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">out</span> <span class="o">/=</span> <span class="n">N</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>Looking at the implementation, you can see that this is not a standard mean calculation but rather a <a href="https://stats.stackexchange.com/a/6536"><em>weighted</em> mean</a>.  A weighted mean is appropriate in this context because of the choice of blurred mask to smooth the transition from non-lip to lip pixels.</p>
+
+<p>Step 3 is the crucial step as I actually transform the pixels here.  I apply a simple alpha blending scheme with a twist in the way that the alpha-part is computed.  The alpha-part in the update comes from the mask weight times the mean-shifted test image lip pixel translated by the desired lip color.  This is a bit of a mouthful, I know, but the gist is that I am trying to maintain the statistical distributions of all of the Y*Cr*Cb* channels in the test image, but just translated to the new desired lipstick color.  The (1-alpha)-part in the alpha-blending comes from original test image pixel, itself.  Note that when the mask gives weight near 1, nearly all of the pixel’s channel values will come from the translated lipstick channel values, whereas when the weight is near 0, nearly all of the values will come directly from the unaltered test image pixel.</p>
+
+<p>Step 4 just does the transformation back to the BGR colorspace and rescales the image to a 3-channel image with unsigned 8-bit depth in each channel.</p>
+
+<h3 id="discussion">Discussion</h3>
+
+<p>To see how this approach works in practice, just look at the image shared just before the solution discussion.  For that image, a lipstick shade of (B,G,R) = (0, 0, 155) was chosen.  The solution looks very natural; lower luminance values from the original image and preserved in the output image (see the creases in the lips, for one, as well as the corners).  The transition from non-lip to lip looks very smooth; there is no hard line present.</p>
+
+<p>What I found while tuning the blur kernel size and evaluating the effect of the weighted vs. non-weighted mean approach, I found that both blurring and the kernel size were crucial in making the final image look as natural as possible.  Once I had the blur, the weighted mean allowed me to smooth the transition in a way that resulted in a nearly-seamless application of lipstick to the original image.  In my opinion, compared to AutoRetouch, the results shown compare quite favorably.</p>
+
+<h2 id="feature-2-virtual-blush">Feature 2: Virtual Blush</h2>
+
+<p>As in the case of the Virtual Lipstick feature implementation, the object of the Virtual Blush feature is to naturally apply blush to a face in an input image.</p>
+
+<p>The virtual lipstick feature implementation worked suprisingly well, so I wanted to use the same core approach for blending a target color over a masked region in the image.  The problem then became: <em>how to construct the region-of-interest (ROI) for the mask?</em></p>
+
+<p>I know next-to-nothing about makeup, in general.  Before diving too deep, I wanted to gain some insights about blush application.  I went through some articles on websites for popular magazines and lifestyle companies.  One article I found interesting (and humbling) was <a href="https://www.goodhousekeeping.com/beauty/makeup/how-to/a37479/best-blush-tips/">this one</a>.  Step 5 in the article showed women with multiple different face shapes and, for each face shape, there was a different (and nonlinear) strategy for blush application!  It was at this point that I realized that the likelihood of coming up with a one-size-fits-all approach was small.  Rather than trying to find such a solution, I resolved to create a well-reasoned, generic approach to solving the problem.  I discuss my solution below.</p>
+
+<h3 id="solution-1">Solution</h3>
+
+<p>I start by stating the following heuristics:</p>
+
+<ul>
+  <li>(H1) The focal point of blush application is the cheek center</li>
+  <li>(H2) The intensity of blush observed falls off proportionally with distance from cheek center
+    <ul>
+      <li>(H2.1) Moreover, there is an axis-of-symmetry about which that intensity falls off</li>
+    </ul>
+  </li>
+  <li>(H3) As in the Virtual Lipstick case, the distribution of color around a mean should match between input and output images, with the output image’s color component being modified to a desired blush color</li>
+</ul>
+
+<p>I used the above heuristics to shape the following algorithm to solve the problem at-hand:</p>
+
+<ul>
+  <li>For each of the right and left cheeks:
+    <ul>
+      <li>Identify an ROI using facial landmarks and compute its centroid (addresses H1)</li>
+      <li>Create a Gaussian mask with size determined by some fraction of ROI from above (addresses H2)</li>
+      <li>Project Gaussian mask onto ROI from above (also addresses H2)</li>
+    </ul>
+  </li>
+  <li>To apply blush: <em>the approach that follows matches the Virtual Lipstick implementation closely</em>
+    <ul>
+      <li>Convert test image to alternate colorspace
+        <ul>
+          <li>For each cheek
+            <ul>
+              <li>compute statistics on cheek pixels, and then use those statistics to transform the desired blush color to a natural embedding for the test image (addresses H3)</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p>The first major bullet of the solution is implemented in the function <code class="language-plaintext highlighter-rouge">computeCheekMasks</code> and the second major bullet is implemented in the function <code class="language-plaintext highlighter-rouge">applyBlush</code>.  The source code for each function is included below for reference as you read through the remainder of the page.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">computeCheekMasks</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">im</span><span class="p">,</span> <span class="n">full_object_detection</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">landmarks</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span><span class="o">&gt;</span> <span class="o">&amp;</span><span class="n">masks</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">boxRatio</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">array</span><span class="o">&lt;</span><span class="kt">float</span><span class="p">,</span> <span class="mi">2</span><span class="o">&gt;</span><span class="p">,</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">kernelRatio</span><span class="p">,</span> <span class="kt">float</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">maskThresh</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">masks</span><span class="p">.</span><span class="n">clear</span><span class="p">();</span>
+
+  <span class="c1">// create points array with points from facial landmark detector</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span> <span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="n">points</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">landmarks</span><span class="p">.</span><span class="n">num_parts</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span>
+  <span class="p">{</span>
+      <span class="n">points</span><span class="p">.</span><span class="n">push_back</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="p">(</span><span class="n">landmarks</span><span class="p">.</span><span class="n">part</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">x</span><span class="p">(),</span> <span class="n">landmarks</span><span class="p">.</span><span class="n">part</span><span class="p">(</span><span class="n">i</span><span class="p">).</span><span class="n">y</span><span class="p">()));</span>
+  <span class="p">}</span>
+
+  <span class="c1">// find centroid of each polygon in the mask</span>
+  <span class="k">auto</span> <span class="n">findCentroid</span> <span class="o">=</span> <span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">points</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">auto</span> <span class="n">m</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">moments</span><span class="p">(</span><span class="n">points</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">m10</span> <span class="o">/</span> <span class="n">m</span><span class="p">.</span><span class="n">m00</span><span class="p">,</span> <span class="n">m</span><span class="p">.</span><span class="n">m01</span> <span class="o">/</span> <span class="n">m</span><span class="p">.</span><span class="n">m00</span><span class="p">);</span>
+  <span class="p">};</span>
+
+  <span class="c1">// find dimensions (height, width) of rectangle containing input points</span>
+  <span class="k">auto</span> <span class="n">heightWidth</span> <span class="o">=</span> <span class="p">[](</span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">points</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">h</span><span class="p">,</span> <span class="kt">int</span> <span class="o">&amp;</span><span class="n">w</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">points</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">j</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">points</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">auto</span> <span class="n">wc</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">abs</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">x</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="n">j</span><span class="p">].</span><span class="n">x</span><span class="p">);</span>
+        <span class="k">auto</span> <span class="n">hc</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">abs</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">y</span> <span class="o">-</span> <span class="n">points</span><span class="p">[</span><span class="n">j</span><span class="p">].</span><span class="n">y</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">hc</span> <span class="o">&gt;</span> <span class="n">h</span><span class="p">)</span> <span class="n">h</span> <span class="o">=</span> <span class="n">hc</span><span class="p">;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">wc</span> <span class="o">&gt;</span> <span class="n">w</span><span class="p">)</span> <span class="n">w</span> <span class="o">=</span> <span class="n">wc</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c1">// right keypoint indices from landmark detector</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">indicesRight</span> <span class="o">=</span> <span class="p">{</span><span class="mi">35</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">};</span> 
+  
+  <span class="c1">// left keypoint indices from landmark detector</span>
+  <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="n">indicesLeft</span> <span class="o">=</span> <span class="p">{</span><span class="mi">31</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">};</span>
+
+  <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">list</span><span class="o">&lt;</span><span class="kt">size_t</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="n">indices</span> <span class="o">=</span> <span class="p">{</span> <span class="n">indicesRight</span><span class="p">,</span> <span class="n">indicesLeft</span> <span class="p">};</span>
+
+  <span class="c1">// for each set of indices:</span>
+  <span class="c1">//   1) create keypoints array (keypoints come from the facial landmark detector) </span>
+  <span class="c1">//   2) compute centroid of polygon created in 1) and add it to the array</span>
+  <span class="c1">//   3) compute height and width of ROI rectangle containing keypoints</span>
+  <span class="c1">//   4) create a square region around polygon centroid with dimensions defined by input boxRatio - on interval (0, 1]</span>
+  <span class="c1">//   5) create a Gaussian kernel over square created in 4) with input standard deviation defined by input kernelRatios</span>
+  <span class="c1">//   6) normalize and apply input threshold to 5)</span>
+  <span class="c1">//   7) setup source and target points for homography estimation</span>
+  <span class="c1">//   8) compute homography</span>
+  <span class="c1">//   9) apply homography to normalized kernel from 6)</span>
+  <span class="c1">//   10) append mask to masks</span>
+
+  <span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// loop counter - 0: right, 1: left</span>
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">ids</span> <span class="o">:</span> <span class="n">indices</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// 1)</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point</span><span class="o">&gt;</span> <span class="n">pts</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">i</span> <span class="o">:</span> <span class="n">ids</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">pts</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+    <span class="p">}</span>
+    
+    <span class="c1">// 2)</span>
+    <span class="k">auto</span> <span class="n">centroid</span> <span class="o">=</span> <span class="n">findCentroid</span><span class="p">(</span><span class="n">pts</span><span class="p">);</span>
+    <span class="n">pts</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span> <span class="n">centroid</span> <span class="p">);</span>
+    
+    <span class="c1">// 3)</span>
+    <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">;</span>
+    <span class="n">heightWidth</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="p">);</span>
+
+    <span class="c1">// 4)</span>
+    <span class="kt">int</span> <span class="n">side</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="n">boxRatio</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">std</span><span class="o">::</span><span class="n">min</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">side</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">++</span><span class="n">side</span><span class="p">;</span>  <span class="c1">// make sure that side is odd for the kernel construction</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span><span class="o">::</span><span class="n">zeros</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">CV_32F</span><span class="p">);</span>
+    
+    <span class="c1">// 5)</span>
+    <span class="c1">// Note: the Gaussian kernel is constructed by applying a Gaussian blur to a 2D delta function (all zeros except at the center, which is 1)</span>
+    <span class="kt">int</span> <span class="n">midpoint</span> <span class="o">=</span> <span class="p">(</span><span class="n">side</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="n">mask</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span> <span class="n">midpoint</span><span class="p">,</span> <span class="n">midpoint</span> <span class="p">)</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">;</span>
+
+    <span class="c1">// see https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html?highlight=gauss#getgaussiankernel</span>
+    <span class="c1">// - the function for computing the sigmas comes from there</span>
+    <span class="kt">double</span> <span class="n">kernelSigmaX</span> <span class="o">=</span> <span class="n">kernelRatio</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">side</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span> <span class="p">)</span> <span class="o">+</span> <span class="mf">0.8</span><span class="p">;</span>
+    <span class="kt">double</span> <span class="n">kernelSigmaY</span> <span class="o">=</span> <span class="n">kernelRatio</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">(</span><span class="n">side</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span> <span class="p">)</span> <span class="o">+</span> <span class="mf">0.8</span><span class="p">;</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">kernel</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span><span class="o">::</span><span class="n">zeros</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">side</span><span class="p">,</span> <span class="n">CV_32F</span><span class="p">);</span>
+
+    <span class="c1">// compute the kernel</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">GaussianBlur</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">kernel</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Size</span><span class="p">(</span><span class="n">side</span><span class="p">,</span> <span class="n">side</span><span class="p">),</span> <span class="n">kernelSigmaX</span><span class="p">,</span> <span class="n">kernelSigmaY</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">BORDER_ISOLATED</span><span class="p">);</span>
+
+    <span class="c1">// 6)</span>
+    <span class="kt">double</span> <span class="n">maxVal</span><span class="p">,</span> <span class="n">minVal</span><span class="p">;</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Point</span> <span class="n">maxLoc</span><span class="p">,</span> <span class="n">minLoc</span><span class="p">;</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">minMaxLoc</span><span class="p">(</span> <span class="n">kernel</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">minVal</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">maxVal</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">minLoc</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">maxLoc</span> <span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">normKernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="p">.</span><span class="n">clone</span><span class="p">();</span>
+    <span class="n">kernel</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">normKernel</span><span class="p">,</span> <span class="n">CV_32F</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">maxVal</span><span class="p">,</span> <span class="o">-</span><span class="n">maskThresh</span><span class="p">);</span>
+
+    <span class="c1">// the rationale here for the remainder of the loop iteration is to map 4 keypoints from the normed</span>
+    <span class="c1">// kernel onto the 4 landmark points for the cheek</span>
+    <span class="c1">// the 4 keypoints of the normed kernel image are</span>
+    <span class="c1">//  * the top-left</span>
+    <span class="c1">//  * the top-right</span>
+    <span class="c1">//  * the center</span>
+    <span class="c1">//  * the bottom-center</span>
+    
+    <span class="c1">// 7)</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">srcPoints</span> <span class="o">=</span> <span class="p">{</span> <span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">side</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+      <span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="p">(</span><span class="n">side</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="p">(</span><span class="n">midpoint</span><span class="p">,</span> <span class="n">midpoint</span><span class="p">)</span> <span class="p">};</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="o">&gt;</span> <span class="n">tgtPoints</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">p</span> <span class="o">:</span> <span class="n">pts</span><span class="p">)</span> <span class="p">{</span>
+      <span class="n">tgtPoints</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Point2f</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">y</span><span class="p">));</span>
+    <span class="p">}</span>
+
+    <span class="c1">// 8)</span>
+    <span class="k">auto</span> <span class="n">homography</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">findHomography</span><span class="p">(</span><span class="n">srcPoints</span><span class="p">,</span> <span class="n">tgtPoints</span><span class="p">);</span>
+    
+    <span class="c1">// 9)</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">warpedMask</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span><span class="o">::</span><span class="n">zeros</span><span class="p">(</span><span class="n">im</span><span class="p">.</span><span class="n">rows</span><span class="p">,</span> <span class="n">im</span><span class="p">.</span><span class="n">cols</span><span class="p">,</span> <span class="n">CV_32F</span><span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">warpPerspective</span><span class="p">(</span><span class="n">normKernel</span><span class="p">,</span> <span class="n">warpedMask</span><span class="p">,</span> <span class="n">homography</span><span class="p">,</span> <span class="n">warpedMask</span><span class="p">.</span><span class="n">size</span><span class="p">());</span>
+
+    <span class="c1">// 10)</span>
+    <span class="n">masks</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">warpedMask</span><span class="p">);</span>
+
+    <span class="o">++</span><span class="n">i</span><span class="p">;</span>  <span class="c1">// increment the loop counter</span>
+  <span class="p">}</span>
+
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">applyBlush</span><span class="p">(</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="o">&amp;</span><span class="n">im</span><span class="p">,</span> <span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Mat</span><span class="o">&gt;</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">masks</span><span class="p">,</span> <span class="n">cv</span><span class="o">::</span><span class="n">Scalar</span> <span class="k">const</span> <span class="o">&amp;</span><span class="n">color</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">auto</span> <span class="n">fwd</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">COLOR_BGR2YCrCb</span><span class="p">;</span>
+  <span class="k">auto</span> <span class="n">bkwd</span> <span class="o">=</span> <span class="n">cv</span><span class="o">::</span><span class="n">COLOR_YCrCb2BGR</span><span class="p">;</span>
+
+  <span class="c1">// "color" is the BGR value of the desired blush shade</span>
+  <span class="c1">// STEP 1: get "fwd" decomposition of input image and desired blush color</span>
+  <span class="c1">// STEP 1.1: input image</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imClr</span><span class="p">;</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">imClr</span><span class="p">,</span> <span class="n">fwd</span><span class="p">);</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imClrFlt</span><span class="p">;</span>
+  <span class="n">imClr</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">CV_32FC3</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="c1">// STEP 1.2: desired blush color</span>
+  <span class="k">auto</span> <span class="n">convertColor</span> <span class="o">=</span> <span class="p">[</span><span class="o">&amp;</span><span class="p">]()</span> <span class="p">{</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">outClr</span><span class="p">;</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">BGR</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">CV_8UC3</span><span class="p">,</span> <span class="n">color</span><span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">BGR</span><span class="p">,</span> <span class="n">outClr</span><span class="p">,</span> <span class="n">fwd</span><span class="p">);</span>
+    <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">outClrFlt</span><span class="p">;</span>
+    <span class="n">outClr</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">outClrFlt</span><span class="p">,</span> <span class="n">CV_32FC3</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="mi">255</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">outClrFlt</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span><span class="o">&gt;</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+  <span class="p">};</span>
+  <span class="k">auto</span> <span class="n">blushClr</span> <span class="o">=</span> <span class="n">convertColor</span><span class="p">();</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="k">auto</span> <span class="o">&amp;</span><span class="n">mask</span> <span class="o">:</span> <span class="n">masks</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// for each mask in masks, execute the following steps</span>
+    <span class="c1">// - this ensures that local statistics are used for each mask region instead of including both in a single mask</span>
+    <span class="c1">// STEP 2: compute weighted mean of cheek pixels in HSV colorspace</span>
+    <span class="k">auto</span> <span class="n">m</span> <span class="o">=</span> <span class="n">maskedMean</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">mask</span><span class="p">);</span>  <span class="c1">// SAME AS IMPLEMENTATION USED FOR VIRTUAL LIPSTICK FEATURE</span>
+
+    <span class="c1">// STEP 3: apply alpha blending to pixels with non-zero value in the mask</span>
+    <span class="c1">// this alpha blending utilizes the following scheme:</span>
+    <span class="c1">// - apply weight (equal to the mask pixel value) to the desired YCrCb lip color + a translation that incorporates variation in the source image</span>
+    <span class="c1">// - apply weight (equal to 1 - mask pixel value) to the original pixel in the source image transformed to YCrCb colorspace</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">rows</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">cols</span><span class="p">;</span> <span class="o">++</span><span class="n">j</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">auto</span> <span class="n">mpxl</span> <span class="o">=</span> <span class="n">mask</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="kt">float</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mpxl</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">auto</span> <span class="o">&amp;</span><span class="n">srcPxlClr</span> <span class="o">=</span> <span class="n">imClrFlt</span><span class="p">.</span><span class="n">at</span><span class="o">&lt;</span><span class="n">cv</span><span class="o">::</span><span class="n">Vec3f</span><span class="o">&gt;</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">);</span>
+          <span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">;</span> <span class="o">++</span><span class="n">idx</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpxl</span> <span class="o">*</span> <span class="p">(</span> <span class="n">blushClr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">m</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">mpxl</span><span class="p">)</span> <span class="o">*</span> <span class="n">srcPxlClr</span><span class="p">[</span><span class="n">idx</span><span class="p">];</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+
+  <span class="c1">// STEP 4: convert transformed image back to BGR and change depth to 8-bit unsigned int</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">Mat</span> <span class="n">imFlt</span><span class="p">;</span>
+  <span class="n">cv</span><span class="o">::</span><span class="n">cvtColor</span><span class="p">(</span><span class="n">imClrFlt</span><span class="p">,</span> <span class="n">imFlt</span><span class="p">,</span> <span class="n">bkwd</span><span class="p">);</span>
+  <span class="n">imFlt</span><span class="p">.</span><span class="n">convertTo</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">CV_8UC3</span><span class="p">,</span> <span class="mi">255</span><span class="p">);</span>
+
+  <span class="k">return</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>I’ll now discuss the algorithm in more detail.</p>
+
+<h4 id="identify-an-roi">Identify an ROI</h4>
+
+<p>For the ROI construction, I referred back to the 68-point facial landmark detector from dlib.  Unfortunately, there is no cheek center landmark.  This presented a minor bump which I was able to overcome by observing the following: <em>the cheek region for both right and left cheeks can be approximated by a triangle whose vertices come from particular landmark points</em>.</p>
+
+<p>Once the triangle defined by these three points was constructed, it was really easy to find the centroid; it is just the arithmetic center of the triangle.  The image with the triangle vertices and centroid highlighted for both the right and left cheek regions is shown below:</p>
+
+<p><img src="/assets/img/blush-keypoints.jpg" alt="test-image"></p>
+
+<p>Using these keypoints, I then created a Gaussian mask that I could project onto the original image to define a region to apply the blush to.  This is conceptually very similar to the approach taken for the Virtual Lipstick feature implementation, with the additional complexity that a circular (or elliptical) Gaussian kernel mask applied to either cheek would look really unnatural.  The reason for this unfortunate fact is that naive application of a Gaussian mask around the cheek centers won’t match head pose or contour of the face in the original image.  I still like the idea of a Gaussian - it gives me a mechanism for addressing heuristics H2 and H2.1 above about symmetry.  This led me to the following idea: <em>the axis-of-symmetry for blush application can be naturally embedded onto the 2D projected face shape by means of a projective transformation (homography)</em>.</p>
+
+<p>The specifics of the homography are quite simple.  The three vertices of the triangle plus the triangle center for each cheek region gives 4 points to match in the output image.  The source points of the homography are: <em>the top-left, top-right, center, and the bottom-center</em>.  These points can be seen to map quite naturally onto the keypoints in the image shown above.  The result of this approach leads to the following <em>representative</em> set of masks for the original image:</p>
+
+<p><img src="/assets/img/blush-masks.jpg" alt="test-image"></p>
+
+<p>I said <em>representative</em> in the previous sentence because the set of parameters used are just one of a continuum of possibilities.  To add more flexibility to the approach, I added the following configurable parameters:</p>
+
+<ul>
+  <li>
+<em>Box ratio</em>: this ratio defines how big the rectangular ROI around each cheek center will be (compared to the minimum of height and width of the full cheek rectangular ROI)</li>
+  <li>
+<em>Kernel ratios</em>: these multipliers define the xy spread of the Gaussian kernel to be used as mask</li>
+  <li>
+<em>Mask threshold</em>: floating point threshold value below which to zero out values from the Gaussian mask</li>
+</ul>
+
+<p>At this point, I have a configurable approach to constructing masks for the right and left cheek regions.  This is all I need to apply the method from the Virtual Lipstick feature implementation described above.</p>
+
+<h4 id="apply-blush">Apply blush</h4>
+
+<p>I won’t repeat verbatim the rationale for method chosen to apply the blush; you can go back to Step 3 from the Virtual Lipstick section of this page for a refresher.  The only difference in this approach is that there are now 2 masked regions that need to be iterated over separately.  In order to match statistics of the input and output images, each masked cheek region needs to be processed separately to give the most natural-looking output image.  Moreover, because the face in the input image is not symmetric, some separate tuning of mask ROI size and Gaussian kernel spread was required.</p>
+
+<p>After a few rounds of tuning, here’s the resulting output image:</p>
+
+<p><img src="/assets/img/girl-blush.jpg" alt="test-image"></p>
+
+<h3 id="discussion-1">Discussion</h3>
+
+<p>This feature implementation did not go as well as I would have hoped.  In the resulting image, there are some visible artifacts of the mask application shown around the cheek contours.  In hindsight, there are a lot of image-specific components (like head pose, lighting, skin tone, face shape, etc…) that make blush application quite difficult.  The approach I came up with, though demonstrably imperfect, was a good attempt at a solution under the circumstances.  I know that I could have tweaked the approach to gain some minor improvements on the input image provided however, in the broader scope of the task, this would not have necessarily led to general improvements in the algorithm’s performance when applied to new images.</p>
+
+<p>Some thoughts on tuning:</p>
+
+<ul>
+  <li>Increasing the mask threshold made transitions less smooth, which makes sense intuitively.  If there is a cutoff-value and an abrupt transition from 0 to that cutoff-value in the mask, there will be a step discontinuity in the target image.  In practice, it seems best to just leave the mask threshold set to 0.</li>
+  <li>The Gaussian mask width and height need to be chosen carefully to reflect the head pose in the image.  When the aspect ratio (y/x) is high in the input image, the kernel height should be the same size or a little larger than the kernel width.  When the aspect ratio is low, the opposite advice applies.</li>
+  <li>It appears better to only tune the box ratio and to set the mask width and height based on the aspect ratio heuristic mentioned in the previous bullet point. The box ratio of less than 0.5 seems appropriate, with values closer to 0.5 being more applicable to smaller cheek ROI and smaller values being more applicable to larger cheek ROI.</li>
+</ul>
+
+<h2 id="final-remarks">Final Remarks</h2>
+
+<p>The Virtual Lipstick feature implementation went really well.  The resulting image after applying the solution looks very natural.</p>
+
+<p>I am not so pleased with the Virtual Blush feature implementation.  Not only was the solution for the Virtual Lipstick feature simpler, it seems to have performed significantly better with less configuration parameters to tune. The problems with Virtual Blush seem to have started from the very beginning with the ROI construction.  I suppose I could have identified better heuristics for determining cheek center (including landmarks from the eyes or jaw, perhaps).  The choice of Gaussian kernel for the mask, and the subsequent projection of those mask keypoints onto the facial landmarks, could also have been improved; the projection of this approach fails to capture the natural warping of the Gaussian mask around 3D contours of the cheek and face.</p>
+
+<p>All things considered, I think that the two approaches outlined in this post are pretty good in that they present well-reasoned and decently performant solutions to the problems presented.  I learned a lot while doing this project.  However, I’m hoping that future projects will be more focused on spatial reasoning about images (keypoints, 3D reconstruction, AR/VR) and less focused on cosmetics and Snapchat filters <img class="emoji" title=":grin:" alt=":grin:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f601.png" height="20" width="20"></p>
+
+<p>Thanks for reading!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2020/virtualmakeup';
+      var disqus_title      = "Virtual Makeup Project Writeup";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    © Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

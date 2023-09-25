@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Non-Minimal (random) Sample and Consensus (NMSAC)</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/projects/nmsac/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Non-Minimal (random) Sample and Consensus (NMSAC)</h1>
+    <h5 class="post-description">One approach for solving the point cloud registration problem with unknown correspondences</h5>
+  </header>
+
+  <article class="post-content Non-Minimal (random) Sample and Consensus (NMSAC) clearfix">
+    <p><img align="left" width="1280" height="480" src="/assets/img/nmsac/summary_pic.png" /></p>
+
+<h2 id="abstract">Abstract</h2>
+
+<p>In this project writeup, I will discuss the development of <a href="https://github.com/jwdinius/nmsac">NMSAC</a>, which is an end-to-end solver for identifying the rigid motion (translation + rotation) that best aligns two point clouds: a source and target.  It is furthermore assumed that there are no known correspondences between points in the source and target clouds.  I will discuss the following three main aspects of NMSAC algorithm:</p>
+
+<ul>
+  <li>Find correspondences</li>
+  <li>Use found correspondences to coarsely align the two point clouds</li>
+  <li>Perform fine alignment of point clouds (to account for any noise present)</li>
+</ul>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>NMSAC is the culmination of 1+ years’ worth of work.  I have written a few posts along the way summarizing the state of development:</p>
+
+<ul>
+  <li><a href="/blog/2019/point-match">Point Cloud Registration as Optimization, Part One</a></li>
+  <li><a href="/blog/2020/point-match-cont">Point Cloud Registration as Optimization, Part Two</a></li>
+  <li><a href="/blog/2020/point-match-sol">Point Cloud Registration as Optimization, Code Implementation</a></li>
+  <li><a href="/blog/2021/max-clique">Finding Point Cloud Correspondences Using Undirected Graphs</a></li>
+</ul>
+
+<p>With the exception of the third post linked above, these posts summarize the problem statement and algorithms used to solve the problem.  I won’t go through these details again here.  This writeup will instead be an executive summary of the project.</p>
+
+<p>This project was predominately about developing skills in the following areas:</p>
+
+<ul>
+  <li>Project organization using <a href="https://cmake.org/">CMake</a> - <em>what is the best way to organize projects so that components can be easily included/excluded from the final build?</em></li>
+  <li>Application development using <a href="http://arma.sourceforge.net/">Armadillo</a> and <a href="https://www.mlpack.org/">MLPack</a> - <em>these API are nice considering Armadillo’s high degree of similarity to Matlab syntax and function names</em></li>
+  <li>Developing simple, modular interfaces for rapid algorithm prototyping - <em>what is the minimal information needed in a function call to setup and solve the problems considered?</em></li>
+  <li>Building solid CI for maintaining project integrity - <em>how to perform post-commit verification and integrity checks automatically?</em></li>
+</ul>
+
+<h2 id="project-details">Project Details</h2>
+
+<p>I have posted the project code on <a href="https://github.com/jwdinius/nmsac">GitHub</a>.  The <a href="https://github.com/jwdinius/nmsac/blob/develop/README.md">README</a> covers steps for reproducing results, but I will go over high-level aspects of the project in the subsequent sections of this writeup to give more context.</p>
+
+<h3 id="problem-statement">Problem Statement</h3>
+
+<p>From the project’s <a href="https://github.com/jwdinius/nmsac/blob/develop/README.md">README</a>:</p>
+
+<p>The basic workflow to achieve non-minimal sample consensus between two point clouds, <code class="language-plaintext highlighter-rouge">src</code> and <code class="language-plaintext highlighter-rouge">tgt</code>, is:</p>
+
+<blockquote>
+  <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Algorithm 1: NMSAC
+In: src, tgt, config
+Out: H, homogeneous transformation that best maps src onto tgt, number of inliers, number of iterations
+Initialize
+loop:
+  sample a set of config.N points from src (and mark the points that have been chosen)
+  loop:
+    sample a set of config.N points from tgt (and mark the points that have been chosen)
+    Identify correspondences between subsampled src and subsampled tgt point sets (Algorithm 2)
+    Identify best fit transformation that maps subsampled src points onto subsampled tgt points using correspondences found (Algorithm 3a)
+    (optional) Perform iterative alignment of original src and tgt point sets using best fit transformation as starting point (Algorithm 3b)
+    count inliers and update if number is higher than all previous iterations
+    check for convergence, exit both loops if converged
+</code></pre></div>  </div>
+</blockquote>
+
+<h3 id="what-was-achieved">What Was Achieved</h3>
+
+<ul>
+  <li>Efficient packaging of development environment using <a href="https://www.docker.com/">Docker</a>
+    <ul>
+      <li>This same development environment is used in the CI pipeline</li>
+    </ul>
+  </li>
+  <li>Demonstration of package management using modern CMake paradigms (such as generator expressions for conditional variable evaluation at build-time)</li>
+  <li>Development of a highly-performant representation of a recent academic work (<a href="https://arxiv.org/abs/1904.03483">SDRSAC</a>) presented at the world’s preeminent computer vision conference, <a href="https://cvpr2019.thecvf.com/">CVPR</a></li>
+  <li>Creation of a simple and elegant interface to the algorithm that is easily configured at runtime for different languages
+    <ul>
+      <li>Currently only C++ and Python are implemented, but the pattern for building different language bindings is really simple</li>
+      <li>Runtime configuration is specified by JSON-compliant data structure (input as a string at the function input boundary)</li>
+      <li>This enables quick experimentation with different algorithms and their configurations without recompiling</li>
+    </ul>
+  </li>
+  <li>CI pipeline that performs pre-compile checks (e.g. linting), runtime checks (e.g. code coverage), and unit testing using <a href="https://circleci.com/">circleci</a> and <a href="https://github.com/google/googletest">GoogleTest</a></li>
+</ul>
+
+<h2 id="concluding-remarks">Concluding Remarks</h2>
+
+<p>Wrapping up work on this project is really bittersweet for me.  I started it with a lot of excitement about possibilities for publication and collaboration with the lead author of the original SDRSAC paper.  This collaboration never materialized unfortunately, so I pivoted away from pushing forward with any original research and decided to focus on how to build clean, elegant application interfaces for original research.  In this regard, I think the project was a real success, as I’ve already been able to use what I’ve learned about the GoogleTest and CMake APIs to improve my work development processes significantly.  I’ve really enjoyed my time developing NMSAC, but I realized that I have stopped making substantive progress and I find the work I have been doing lately to be really unsatisfying.  This writeup is my “farewell” to NMSAC, however it is my sincere hope that others will take what I’ve done and find inspiration.  For those whose interest has been peaked, here are some ideas for future work:</p>
+
+<ul>
+  <li>Test NMSAC against standard 3D registration datasets (e.g. <a href="http://www.cvlibs.net/datasets/kitti/index.php">KITTI</a>)</li>
+  <li>Run different samples concurrently using multiple threads
+    <ul>
+      <li>This would be really easy considering the double for-loop architecture employed for drawing and evaluating subsamples from the source and target point cloud sets</li>
+    </ul>
+  </li>
+  <li>Add new, more efficient iterative closest point (ICP) algorithms for fine-alignment
+    <ul>
+      <li>The convention from the original SDRSAC paper to do ICP alignment after each subsampling period was adopted in NMSAC.  However, this approach dramatically decreases runtime execution speed.  Something else to consider would be to only do fine alignment with ICP (or a variant) once at the end of execution</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="some-additional-references">Some Additional References</h2>
+
+<ul>
+  <li><a href="https://arxiv.org/abs/1904.03483">Original SDRSAC paper</a></li>
+  <li><a href="http://yulanguo.me/dataset.html">List of 3D Registration Datasets</a></li>
+  <li><a href="https://cs.gmu.edu/~kosecka/cs685/cs685-icp.pdf">Nice Summary of Coarse- and Fine-Alignment Methods for Point Cloud Registration</a></li>
+</ul>
+
+<h1 id="thanks-for-reading">Thanks for reading!</h1>
+
+  </article>
+
+  
+
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

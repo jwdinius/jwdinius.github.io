@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Goodbye WordPress</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2017/goodbye/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Goodbye WordPress</h1>
+    <p class="post-meta">October 1, 2017</p>
+  </header>
+
+  <article class="post-content">
+    <h2 id="summary">Summary</h2>
+
+<ul>
+  <li>I’ve started a blog.</li>
+  <li>WordPress presented little value to me.</li>
+  <li>(Jekyll + GitHub Pages) &gt; WordPress.</li>
+</ul>
+
+<h3 id="setting-up-a-simple-portfolio-isnt-so-simple">Setting up a simple portfolio isn’t so simple</h3>
+
+<p>I decided that, as an early- to mid-career engineer and a hobbyist who often tinkers with pretty cool things and ideas, it would be a good idea to have a portfolio to share with other collaborators or future employers that highlight what I’ve worked on.  Put simply: I wanted to build a portfolio site.  Although I’ve written a lot of tactical code for embedded systems over the years, my web skills are lacking.  I’ve built static sites in the past, but they did not have the polish and simple navigation (or the apparent ease of construction) that I’ve come to enjoy on the modern web.  I wanted something simple, but that could still render high-quality video and images and also embed pretty mathematical equations (like what <a href="https://www.mathjax.org">MathJax</a> supposedly does).  I’d seen ads for <a href="https://www.squarespace.com">Squarespace</a>, <a href="https://www.wordpress.com">WordPress</a>, and the like for years now and naively, and perhaps a bit arrogantly, thought: “There’s a lot of people using WordPress for creating custom content, so it shouldn’t be too hard to do what I want.”  I pulled the trigger and opted for WordPress to both host a site (the soon to be defunct josephwdinius.me) and provide website building support, at some monetary expense I might add.  I was content with my decision, and also eager to begin a new project.  Now, the real fun would begin.</p>
+
+<h3 id="enter-frustration">Enter Frustration</h3>
+
+<p>From the moment I chose a template, I realized this was not going to be as simple as I’d hoped.  There were so many templates!  At a certain point, choice becomes debilitating and I believe WordPress has far exceeded that point.  My first thought was: “I bet the implementation was so much cleaner, and the experience so much better, for early adopters of WordPress”.  Those must have been the days: clean interface, limited options, and greater control.  (Sigh)</p>
+
+<p>My main complaints can be summarized as follows:</p>
+
+<p>The options in wp-admin are confusing and lack adequate controls (why can’t I deactivate Jetpack?).
+I tried importing static pages, not whole sites, and found no support.
+Available plugins have poor documentation, no “Getting Started”, and are generally unusable.
+I’m not going to ramble through each of these; I haven’t the stomach left to do so.  I’ll merely state that I experienced a moderate degree of difficulty trying to do what I thought would not be difficult at all.  This forced a pivot after several hours of effort.</p>
+
+<h3 id="enter-jekyll">Enter Jekyll</h3>
+
+<p>I needed to take stock of where I was at.  As of yesterday morning, I had a domain, a temperamental site builder that I couldn’t get to do what I want, and multiple static html and Jupyter notebook projects cluttering my digital space.  What I also had was a significant decrease in my spending money (about $300, not accounting for my lost time).  I’d had enough.  After speaking with some friends, I decided to look into Jekyll, a static site generator.  I’m glad I did.  Jekyll has been a real treat; It renders Markdown beautifully, it is easy to integrate MathJax support, and it is easy to use.  I really like the command line interface with Ruby gems support.  Moreover, it was free.  I spent only an hour or so setting it up, and in that time I accomplished more of my goals than in 7+ hours with WordPress and its associated plugins.</p>
+
+<p>One problem I still had, and it seems to be a consequence of WordPress’s domain service policy, not its software limitations, is that I cannot seem to point all traffic to my domain to another site.  I was trying to have my domain use my GitHub Page as an alias, but that also proved too great a challenge for me.  So, finally, I gave up.  I asked, and received, a refund from WordPress due to lack of desired functionality.</p>
+
+<p>The only thing WordPress got right was the refund process.  Truly, that was seamless.</p>
+
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2017/goodbye';
+      var disqus_title      = "Goodbye WordPress";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

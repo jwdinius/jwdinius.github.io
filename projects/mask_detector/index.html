@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Real-Time Mask Detection</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/projects/mask_detector/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Real-Time Mask Detection</h1>
+    <h5 class="post-description">Multithreaded C++ application</h5>
+  </header>
+
+  <article class="post-content Real-Time Mask Detection clearfix">
+    <p><img src="/assets/img/mask_detector/video-demo.gif" alt="viddemo" /></p>
+
+<h2 id="abstract">Abstract</h2>
+<p>I built a multithreaded C++ application using OpenCV’s <a href="https://docs.opencv.org/4.5.0/d6/d0f/group__dnn.html">Deep Neural Network API</a>.  The approach achieves demonstrably robust, real-time object detection with input image, video, and device (e.g. webcam) streams.  In this page, I will discuss the end-to-end implementation; from dataset and training, to inference and application design.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Over this past year, I’ve been working through the second offering from <a href="https://opencv.org/courses/">OpenCV’s AI courses</a>.  There were three projects for this course; the first two I’ve already written up <a href="/blog/2020/virtualmakeup">here</a> and <a href="/blog/2020/lookalike">here</a>.  For the third project, I decided to work through it differently than the rubric prescribed.  Rather than just putting together a simplified submission to satisfy project requirements, I wanted to do something practical that could be used as a baseline for future computer vision projects, both personal and professional.  In this writeup, I will discuss the solution that created the gif above with particular emphasis on the following aspects:</p>
+
+<ul>
+  <li>Problem Statement</li>
+  <li>Compositional Elements (i.e. Tools Used)</li>
+  <li>Dataset</li>
+  <li>Model Selection and Training</li>
+  <li>Application Design and Implementation</li>
+</ul>
+
+<h2 id="project-details">Project Details</h2>
+
+<p>I have posted the project code on <a href="https://github.com/jwdinius/yolov4-mask-detector">GitHub</a>.  The <a href="https://github.com/jwdinius/yolov4-mask-detector/blob/master/README.md">README</a> covers steps for reproducing results, but I will go over high-level aspects of the project in the subsequent sections of this writeup to give more context.</p>
+
+<h3 id="problem-statement">Problem Statement</h3>
+
+<blockquote>
+  <p>Given image data input from one of the following sources:</p>
+
+  <ul>
+    <li>Image file</li>
+    <li>Video file</li>
+    <li>Streaming device (e.g. webcam)</li>
+  </ul>
+
+  <p>perform inference on the data to detect faces and determine whether or not they are wearing face coverings (i.e. masks).</p>
+</blockquote>
+
+<p>The problem is broken into two pieces:</p>
+
+<ul>
+  <li>Training - <em>supervised training process to “learn” the desired detector</em></li>
+  <li>Testing - <em>deploy the trained model to perform inference on new input</em></li>
+</ul>
+
+<h4 id="solution-objectives">Solution Objectives</h4>
+
+<p>In this project, I aim to solve the problem stated above with a solution that is:</p>
+
+<ul>
+  <li>trained using freely available annotated image data - <em>this is a consideration for training alone</em></li>
+  <li>real-time - <em>Input frames-per-second (FPS) = Output FPS, a consideration for testing</em></li>
+  <li>configurable at runtime - <em>The user has multiple options available for experimentation without recompiling the application; this is considered for testing alone</em></li>
+  <li>built entirely using open-source components - <em>this is a joint consideration for both stages of the project</em></li>
+</ul>
+
+<h3 id="tools">Tools</h3>
+
+<p>The open-source software frameworks used in the project are:</p>
+
+<ul>
+  <li><a href="https://isocpp.org/">C++(14) standard library</a> - <em>the core C++ API, including</em> <code class="language-plaintext highlighter-rouge">std::thread</code> <em>and, relatedly,</em> <code class="language-plaintext highlighter-rouge">std::mutex</code></li>
+  <li><a href="https://github.com/opencv/opencv/tree/4.5.0">OpenCV</a> - <em>for image processing, visualization, and inference utilities</em></li>
+  <li><a href="https://github.com/AlexeyAB/darknet/tree/be906dfa0e1d24f5ba61963d16dd0dd00b32f317">DarkNet</a> - <em>for model selection and training</em></li>
+  <li><a href="https://www.docker.com/">Docker</a> - <em>for deploying containers with all compile- and build-time dependencies satisfied</em></li>
+</ul>
+
+<h3 id="dataset"><a href="https://www.dropbox.com/s/6gewe947ake1g95/kaggle_and_no-mask_dataset.zip?dl=1">Dataset</a></h3>
+
+<p>The dataset has been prepared with the <a href="https://www.arunponnusamy.com/preparing-custom-dataset-for-training-yolo-object-detector.html">prerequisite YOLO format</a> already satisfied. For other available datasets, consider looking on <a href="https://www.kaggle.com/datasets?search=mask">Kaggle</a>.</p>
+
+<p>The dataset needed some cleanup and minor post-processing to be usable in training; see the project <a href="https://github.com/jwdinius/yolov4-mask-detector/blob/master/README.md">README</a> for specifics (incl. instructions).</p>
+
+<h3 id="model-selection-and-training">Model Selection and Training</h3>
+
+<p><a href="https://pjreddie.com/darknet/yolo/">YOLO</a> is a popular one-stage object detector that jointly estimates bounding boxes and labels for objects in images.  It comes in several variants and versions, with <a href="https://arxiv.org/abs/2004.10934">YOLOv4</a> being one of the most recent.  For model selection, I considered mostly inference time, which is inversely proportional to inference_rate in FPS, <a href="https://jonathan-hui.medium.com/map-mean-average-precision-for-object-detection-45c121a31173#:~:text=AP%20(Average%20precision)%20is%20a,value%20over%200%20to%201.">mean average precision (mAP)</a>, difficulty to train, and difficulty in deploying in a command-line app with OpenCV.  This last consideration was most important for this project.  Ultimately, I wanted to use OpenCV’s utilities for image acquisition and post-processing.  This desire arose from the high-level of maturity of both the source code and the online documentation (including tutorials).</p>
+
+<h4 id="yolov4-combines-inference-speed-with-accuracy">YOLOv4 combines inference speed with accuracy</h4>
+
+<p>The following chart from the YOLOv4 paper shows favorable model performance on the standard <a href="https://cocodataset.org/#home">COCO</a> when compared to competing methods:</p>
+
+<p><img src="/assets/img/mask_detector/yolov4_comparison_chart.png" alt="yolov4perf" /></p>
+
+<p>When referring to the chart above, the top-right of the chart is where I want to focus on: <em>better</em> models for the problem at-hand will show data points in this region since these are the fastest and most accurate.  As you can see in the chart, YOLOv4 achieves results comparable (within ~5% average precision) with the most accurate models considered, while significantly outperforming those same models in terms of inference speed.</p>
+
+<p>YOLO model variants have a peculiar constraint on input image size for training and inference: <em>the image height and width, in pixels, needs to be a multiple of 32</em>.  This is because of the binning of image regions used to perform object detection without generating a priori region proposals (as in two-stage methods like <a href="https://arxiv.org/abs/1504.08083">Fast-RCNN</a>).  The larger the input image size, typically, the higher the mAP score.  This increased accuracy comes with a hit to inference speed.  For this project, I trained two different configurations - one with (h, w) = (256, 256), the other with (h, w) = (416, 416).  I stopped here because, for me, the project wasn’t about maximizing accuracy so much as putting together the real-time application using the trained model.  In practice, I found the accuracy, time-to-train, and inference time acceptable for this project with (h, w) = (416, 416).  I will discuss this further in the <a href="#concluding-remarks">conclusion</a>.</p>
+
+<h4 id="training">Training</h4>
+
+<p>YOLOv4 is easily, and efficiently, trained using Darknet.  Darknet is a C/C++ framework for neural network model optimization written to train the original YOLO.  The author of the original YOLO paper no longer maintains the Darknet, however one of the authors of the YOLOv4 paper has created, and maintains, an updated <a href="https://github.com/AlexeyAB/darknet">fork</a>.  The repo has <a href="https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects">instructions</a> to easily train YOLOv4 (or v3, for that matter) for custom object detection problems; i.e. those that seek to detect objects not in the COCO dataset.  I followed these same instructions to train the mask detection model used for inference.</p>
+
+<h5 id="download-pre-trained-task-specific-weights">Download pre-trained task-specific weights</h5>
+
+<p>If you want to avoid having to retrain the model, here are links to pre-trained model weight files:</p>
+
+<ul>
+  <li><a href="https://drive.google.com/file/d/1TRixgeK0tvrcxfgcCoDZqlZTmCW1hThS/view?usp=sharing">(Height, Width) = (256, 256)</a></li>
+  <li><a href="https://drive.google.com/file/d/1aN66YAFzePw0Ioi_B5mU5PXH_3jDw7mB/view?usp=sharing">(Height, Width) = (416, 416)</a></li>
+</ul>
+
+<h3 id="application-design-and-implementation">Application Design and Implementation</h3>
+
+<p>For this part of the project, the major aspects considered were:</p>
+
+<ul>
+  <li>Multithreading and Data Management - <em>How is data acquired, processed, and shared safely?</em></li>
+  <li>UI/UX - <em>How will users run and interact with the application?</em></li>
+  <li>Measuring Performance - <em>How is runtime performance of the application assessed?</em></li>
+</ul>
+
+<h4 id="multithreading-and-data-management">Multithreading and Data Management</h4>
+
+<p>There are naturally concurrent ways of viewing this problem; <em>data will be generated from the input source independently of subsequent processing</em>.  This means we can easily separate input capture from other processing in its own separate thread.  The perceived main bottleneck in the application will be the forward pass of YOLOv4 for inference, so I wanted to avoid blocking any other step in the execution pipeline.  To accomplish this, I used a second thread that does preprocessing of an input image and then performs inference using the trained YOLOv4 model.  After performing inference, the bounding boxes and labels are drawn onto the original raw image frame in the third thread.</p>
+
+<p>The big assumption underlying the design of the application was that YOLOv4 would be the computational bottleneck, therefore it should be isolated from all other steps in the computational loop to prevent blocking data acquisition and post processing steps.  In practice, with my <a href="https://github.com/jwdinius/yolov4-mask-detector#dependencies-just-use-docker">system configuration</a>, the bottleneck was not nearly as large as I expected.  I’ll discuss this more in the <a href="#concluding-remarks">conclusion</a>.</p>
+
+<p>The core application engine is an asynchronous sequential pipe composed of multiple processing thread:  <em>each processing thread has input and output queues that are read from / written to when new data is available</em>.  The main thread does initialization, handles user input - both at launch via CLI options, as well as trackbar moves on the output GUI, and plots the GUI output with data generated by the processing threads.  Concurrent accesses are managed using a locking mechanism - a mutex - at the data structure level; each data structure has its own mutex to ensure data integrity.</p>
+
+<p>In summary, there are four threads employed in the solution:</p>
+
+<ul>
+  <li>Thread 1 (main thread) - <em>initialization, user I/O, and performance metric capture</em></li>
+  <li>Thread 2 (raw input capture) - <em>read from input stream</em></li>
+  <li>Thread 3 (inference) - <em>preprocess and YOLOv4 forward pass</em></li>
+  <li>Thread 4 (post-processing) - <em>draw bounding boxes, with labels, and apply confidence and <a href="https://lilianweng.github.io/lil-log/2017/12/31/object-recognition-for-dummies-part-3.html">non-max suppression</a> thresholding</em></li>
+</ul>
+
+<h4 id="uiux">UI/UX</h4>
+
+<p>There are two main components considered: <em>a command-line interface (CLI) and an interactive GUI</em>.  The core design principle for the application UI/UX is runtime configurability; a user should be able to choose from several available options when launching the application.  This functionality enables rapid experimentation without the necessity of slow and tedious recompilation.</p>
+
+<h5 id="cli">CLI</h5>
+
+<p>The command-line interface uses OpenCV’s <a href="https://docs.opencv.org/4.5.0/d0/d2e/classcv_1_1CommandLineParser.html">CommandLineParser</a> to expose the following configurable options:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="c1">//! command-line inputs for OpenCV's parser </span>
+  <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">keys</span> <span class="o">=</span>
+      <span class="s">"{ help  h     | | Print help message. }"</span>
+      <span class="s">"{ device      | 0 | camera device number. }"</span>
+      <span class="s">"{ input i     | | Path to input image or video file. Skip this argument to capture frames from a camera. }"</span>
+      <span class="s">"{ output o    | "" | Path to output video file. }"</span>
+      <span class="s">"{ config      | | yolo model configuration file. }"</span>
+      <span class="s">"{ weights     | | yolo model weights. }"</span>
+      <span class="s">"{ classes     | | path to a text file with names of classes to label detected objects. }"</span>
+      <span class="s">"{ backend     | 5 | Choose one of the following available backends: "</span>
+                           <span class="s">"0: DNN_BACKEND_DEFAULT, "</span>
+                           <span class="s">"1: DNN_BACKEND_HALIDE, "</span>
+                           <span class="s">"2: DNN_BACKEND_INFERENCE_ENGINE, "</span>
+                           <span class="s">"3: DNN_BACKEND_OPENCV, "</span>
+                           <span class="s">"4: DNN_BACKEND_VKCOM, "</span>
+                           <span class="s">"5: DNN_BACKEND_CUDA }"</span>
+      <span class="s">"{ target      | 6 | Choose one of the following target computation devices: "</span>
+                           <span class="s">"0: DNN_TARGET_CPU, "</span>
+                           <span class="s">"1: DNN_TARGET_OPENCL, "</span>
+                           <span class="s">"2: DNN_TARGET_OPENCL_FP16, "</span>
+                           <span class="s">"3: DNN_TARGET_MYRIAD, "</span>
+                           <span class="s">"4: DNN_TARGET_VULKAN, "</span>
+                           <span class="s">"5: DNN_TARGET_FPGA, "</span>
+                           <span class="s">"6: DNN_TARGET_CUDA, "</span>
+                           <span class="s">"7: DNN_TARGET_CUDA_FP16 }"</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>Input source, either from file or streaming device, is automatically verified and if it is not compatible with certain assumptions about file extension or is otherwise unable to be opened (e.g. the filename doesn’t exist), the application cleanly exits and notifies the user with a clear description of the error.</p>
+
+<p>The inputs <code class="language-plaintext highlighter-rouge">backend</code> and <code class="language-plaintext highlighter-rouge">target</code> are used to define the computational model for forward inference on neural network models with OpenCV’s Deep Neural Network API.  The options available are dependent upon the hardware (and software) resources available, as well as the compile flags used, when compiling OpenCV.  I took this shortcoming into account in the UX design; <em>if the user requests a (backend, target) pairing that is unavailable, the application will cleanly exit with a notification to the user.</em>  The ability to change the computational resources used at runtime, including hardware, is hugely valuable for experimentation.</p>
+
+<p>Users can also try out different trained models quickly and reliably by using different <code class="language-plaintext highlighter-rouge">config</code> and <code class="language-plaintext highlighter-rouge">weights</code> options.</p>
+
+<p>Throughout all options, care was taken to ensure that corner-cases encountered trigger clean exits with descriptive error messages.  This way, the user knows where they went wrong and how to address the problem encountered.</p>
+
+<h5 id="gui">GUI</h5>
+
+<p><img src="/assets/img/mask_detector/test-image-nms-trackbar2.png" alt="ui" /></p>
+
+<p>The final GUI is shown above.  The GUI has two trackbars - one for confidence thresholding, the second for non-maximum suppression thresholding.  Each trackbar is tied to an action that updates the runtime threshold for confidence and non-max suppression, respectively.  By modifying these values during application execution, the user can experiment in real-time and identify prediction sensitivities to these parameters.</p>
+
+<p>Displayed in the final image output are performance metrics (which will be discussed <a href="#measuring-performance">later</a>), as well as detected bounding boxes with classification and confidence threshold displayed for each detection.</p>
+
+<h5 id="final-remarks-about-ui">Final remarks about UI</h5>
+
+<p>Recall that there are three input types available:</p>
+
+<ul>
+  <li>Image file</li>
+  <li>Video file</li>
+  <li>Streaming device (e.g. webcam)</li>
+</ul>
+
+<p>Input types 1 and 3 will stream indefinitely; by design for type 1 and naturally for type 3.  Video files, by contrast, have a natural exit point when the input stream is exhausted (i.e. when the video ends).  To handle input from all three types seamlessly, the user can trigger exit at any time by typing the <code class="language-plaintext highlighter-rouge">Esc</code> key.  For video files, the application will exit cleanly either when the video file ends or, if the video file is still open and streaming, by typing the <code class="language-plaintext highlighter-rouge">Esc</code> key.</p>
+
+<h4 id="measuring-performance">Measuring Performance</h4>
+
+<p>In the top-left of the GUI shown <a href="#gui">here</a>, there are three performance parameters shown:</p>
+
+<ul>
+  <li>Raw frame rate - <em>input capture rate measured in FPS</em></li>
+  <li>Model inference time - <em>time to perform forward pass of YOLOv4 measured in milliseconds</em></li>
+  <li>Postprocessing frame rate - <em>processing rate of final output frames measured in FPS</em></li>
+</ul>
+
+<p>These metrics give the user a way of quantifying application performance, including <em>real-time factor</em>.  Real-time factor is measured as <em>(input frame rate) / (output frame rate)</em>.  A real-time factor of “1” means the application can be classified as “real-time”, since (input rate) = (output rate).</p>
+
+<h2 id="concluding-remarks">Concluding Remarks</h2>
+
+<p>Throughout this writeup, I’ve presented my candidate design for a real-time mask detector built using C++, OpenCV, and YOLOv4.  Some of the key takeaways of this project were:</p>
+
+<ul>
+  <li><em>YOLOv4 is</em> really <em>fast</em>. On my older GPU, I was still able to get inference at ~200FPS.  This was really surprising given the YOLOv4 results on COCO presented in the YOLOv4 paper.  I went into this project thinking that I needed multithreading to achieve a real-time factor &gt;~50%, but I was <em>way</em> wrong about this in my initial assessment.  <em>Caveat: in initial investigations using the CPU backend, streaming dropped to ~3FPS, which would have a real-time factor ~0.1 for a 30FPS streaming device</em>.</li>
+  <li><em>OpenCV presents a nearly end-to-end API for C++</em>.  With its ability to perform timing analyses, parse command line arguments, load and process images, …, OpenCV provides a ton of capability for computer vision practitioners.</li>
+  <li><em>Darknet is really nice as a training API for YOLO-based object detectors</em>.  The API is simple to use and fast when compiled with NVIDIA’s cuDNN library.</li>
+</ul>
+
+<p>If I were to continue work on this project, I would investigate the following:</p>
+
+<ul>
+  <li><em>Training and deploying models with larger height and width of input</em>.  Because the the frame rate was so high when using my GPU for inference, I think that I could use the larger input size to get a more accurate detector that is still real-time.</li>
+  <li><em>Deploying to embedded devices</em>.  Because of the portability of my solution, enabled by Docker, I believe that I could deploy the solution to an NVIDIA edge device, like a <a href="https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-xavier-nx/">Jetson Xavier NX</a> with relative ease.</li>
+</ul>
+
+<p>I had a lot of fun working on this project.  OpenCV continues to build upon past successes to create new value for its myriad end-users (myself included).  The Deep Neural Network module is surprisingly easy to use, is well-documented, and has many available tutorials online.</p>
+
+<h2 id="some-additional-references">Some Additional References</h2>
+
+<ul>
+  <li><a href="https://docs.opencv.org/3.4/d4/db9/samples_2dnn_2object_detection_8cpp-example.html#_a20">Object Detection Example from OpenCV</a></li>
+  <li><a href="https://www.learnopencv.com/deep-learning-based-object-detection-using-yolov3-with-opencv-python-c">YOLO example from LearnOpenCV</a></li>
+  <li><a href="https://lilianweng.github.io/lil-log/2017/10/29/object-recognition-for-dummies-part-1.html">Object Detection for Dummies - Part 1 of 4-part series</a></li>
+</ul>
+
+<h1 id="thanks-for-reading">Thanks for reading!</h1>
+
+  </article>
+
+  
+
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

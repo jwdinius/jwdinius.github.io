@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Acrobot</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2017/acrobot/">
+  
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "all"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\(', '\)'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<!<script type="text/javascript"
+src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">>
+<script type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"></path>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"></path>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Acrobot</h1>
+    <p class="post-meta">October 24, 2017</p>
+  </header>
+
+  <article class="post-content">
+    <h3 id="summary">Summary</h3>
+<ul>
+  <li>The acrobot is a low-dimensional nonlinear dynamical system that can be used to motivate ideas of nonlinear control for more complicated systems.</li>
+  <li>Control strategies for both feedback and open-loop trajectory generation are presented with computational results highlighting key points.</li>
+</ul>
+
+<h3 id="introduction">Introduction</h3>
+<p>Let’s start with a picture:</p>
+<p align="center"> 
+<img src="/assets/img/A1.png">
+</p>
+<p>This image represents the physical layout of a pretty cool robotic system known as the <em>acrobot</em>.  The system consists of two bars, <span style="color:red">red</span> and <span style="color:blue">blue</span>, and two joints.  One of the two joints is connected to the ceiling, while the other links the two bars.  This latter joint is where the fun comes in; this joint is actuated!  Ok, ok, maybe it’s not that exciting, but I think that it’s pretty cool.  Being able to control the angle $q_2$ from the picture directly will allow us to do some pretty neat things later; like making the acrobot point up against gravity or catch a thrown ball.  More on this later.</p>
+
+<h3 id="why-study-the-acrobot">Why study the acrobot?</h3>
+<p>So many reasons…</p>
+<ul>
+  <li>The acrobot is complex enough to exhibit chaotic behavior while not being so complex as to be mathematically intractable.</li>
+  <li>Like many complex robots, the acrobot is <a href="https://ocw.mit.edu/courses/electrical-engineering-and-computer-science/6-832-underactuated-robotics-spring-2009/readings/MIT6_832s09_read_ch01.pdf" target="_blank">underactuated</a>, meaning that it is impossible to make it follow any arbitrary trajectory.</li>
+  <li>Controlling the acrobot provides a great introduction to methods of control for more complex systems.</li>
+</ul>
+
+<h3 id="motivation">Motivation</h3>
+
+<p>I’ll only touch on some key points here; for a more complete treatment, see <a href="http://ieeexplore.ieee.org/document/341864/">Sprong</a> or <a href="http://underactuated.csail.mit.edu/underactuated.html" target="_blank">Tedrake</a>.</p>
+
+<p>The acrobot’s state \(\mathbf{x}\) at any given time is described by the following vector:</p>
+
+\[\mathbf{x} = \begin{pmatrix}
+q_1 \\ 
+q_2 \\
+\dot q_1 \\
+\dot q_2
+\end{pmatrix},\]
+
+<p>and the control input is $u = \ddot q_2$; the actuator can directly change the angular acceleration of $q_2$ only.</p>
+
+<p>I will try and achieve two goals with the acrobot in this post:</p>
+<ul>
+  <li>Make the acrobot <em>stand up</em>, meaning balancing the acrobot upright.</li>
+  <li>Make the acrobot catch a thrown ball.</li>
+</ul>
+
+<p>The second bullet will follow partially as a consequence of work towards achieving the first.  To actually make the acrobot balance requires a few different controllers as it turns out.  To motivate why, let’s start by considering how the acrobot moves when the control strategy is poor.  Below you’ll find a link to a video showing a really rough and poorly actuated trajectory of the acrobot trying to stand up.</p>
+
+<p><a href="https://www.youtube.com/watch?v=IehcrBnQH4c" target="_blank"><img src="https://img.youtube.com/vi/IehcrBnQH4c/0.jpg" alt="badTune"></a></p>
+
+<p>This behavior is suboptimal to be sure, so let’s go through how we might make it better.</p>
+
+<h3 id="control">Control</h3>
+<h4 id="lqr">LQR</h4>
+<p>Personally, I like to start controlling nonlinear systems near equilibria.  Dealing with minor disturbances once I’ve gotten there is easy: just use <a href="https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator" target="_blank">LQR</a>.  LQR is an optimal control law, meaning that given a desired objective, usually minimizing cost given a set of simplifying assumptions, it’s the best control law we can construct.  The desired objective is usually minimizing error between current and desired states.</p>
+
+<p>State evolution using LQR is written as</p>
+
+\[\mathbf{x}_k \approx A (\mathbf{x}_{k-1} - \mathbf{x}_d) + B u,\]
+
+<p>where</p>
+
+<ul>
+  <li>\(\mathbf{x}_k\) is the state vector at time \(k\)</li>
+  <li>\(A\) is the state Jacobian matrix</li>
+  <li>\(\mathbf{x}_d\) is the desired state vector</li>
+  <li>\(B\) is the control Jacobian matrix</li>
+</ul>
+
+<p>The control law for LQR is derived as</p>
+
+\[u = -K (\mathbf{x}-\mathbf{x}_d),\]
+
+<p>where $K$ is the optimal gain discussed in the <a href="https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator" target="_blank">first section here</a>.</p>
+
+<p>LQR is great, but only when the dynamics of the acrobot are mostly linear, and this assumption is valid near equilibria <em>only</em>.  What about away from equilibria?</p>
+
+<h4 id="partial-feedback-linearization">Partial feedback linearization</h4>
+<p><a href="http://www.lirmm.fr/~chemori/Temp/Chaimaa/bergerman95experimental.pdf" target="_blank">Sprong</a> developed a technique for underactuated robotic control that could partially linearize the system.  I’ll only state the control law here, but you should <a href="http://www.lirmm.fr/~chemori/Temp/Chaimaa/bergerman95experimental.pdf" target="_blank">check this out</a> for more details if you’re interested.  The basic idea stems from the fact that fully actuated robots are feedback linearizable, whereas underactuated robots are not.  Partial feedback linearization seeks to simplify the underactuated system as much as possible given the number of controllable degrees of freedom.</p>
+
+<p>We will start with the acrobot <a href="http://robotics.itee.uq.edu.au/~metr4202/2013/lectures/Remotely%20Driven%202%20DOF%20Arm%20-%20Asada%20and%20Slotine.pdf" target="_blank">manipulator dynamic equations</a>:</p>
+
+\[\ddot q_2 = H^{-1} (Bu - C) \\
+B = \begin{pmatrix}
+0 \\
+1
+\end{pmatrix},
+C = \begin{pmatrix} 
+C_1 \\
+C_2
+\end{pmatrix},
+H^{-1} = \begin{pmatrix} 
+a_1 &amp; a_2 \\
+a_2 &amp; a_3
+\end{pmatrix}.\]
+
+<p>The constants \(C_1, C_2, a_1, a_2, a_3\) are all system-specific and don’t matter much for our general discussion of the method.  Now, the gist of partial feedback linearization is that we want a control law such that \(\ddot q_2 = y\), but what should \(y\) be?  I’d argue that \(y\) should be something of the form \(y = k_1 q_2 + k_2 \dot q_2\), for some fixed <em>negative</em> gains \(k_1, k_2\).  Why does this make sense?  The negative feedback acts to oppose large rate change.  This is definitely not a rigorous argument, this is a blog post after all <img class="emoji" title=":smiley:" alt=":smiley:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f603.png" height="20" width="20">.  However, in the results that will be presented, the controller works pretty well.  The partial feedback linearization control law is written out explicitly as:</p>
+
+\[u = \frac{1}{a_3}(y + a_2 C_1) + C_2.\]
+
+<h4 id="energy-shaping">Energy shaping</h4>
+<p>This is arguably the most ad hoc controller that will be presented, but it works.  In fact, it works pretty darned well; even far from equilibrium.  The total energy of any physical system, which includes the acrobot, is the sum of the potential, \(V\), and kinetic, \(T\), energies:  \(E = T + V\).  It would be desirable to construct a feedback control that sought out a desired energy, i.e. the potential energy an equilibrium point.  Such a control law exists, and it’s construction is known as <em>energy shaping</em>.  The law is written out as:</p>
+
+\[u = k(E_d - E)\dot q_2,\]
+
+<p>where \(E_d\) is the system’s energy at the desired position in state space.  For details of this control law, see <a href="http://underactuated.csail.mit.edu/underactuated.html?chapter=3" target="_blank">Tedrake, Section 3.5</a>.</p>
+
+<h4 id="trajectory-planning">Trajectory Planning</h4>
+
+<p>Trajectory planning is super cool, and I’d love to get way into this here, but I don’t want to derail the discussion of the acrobot.  I’ll write more on trajectory planning methods in future posts, so fret not.</p>
+
+<h5 id="what-is-trajectory-planning">What is trajectory planning?</h5>
+
+<p>If the dynamics of the system are well known, there are a number of analytical tools that can be brought to bear in executing desired movements.  Specifically, we can construct a control sequence that optimizes system response.  In this context, I’d say that <em>optimizes system response</em> means <em>minimizes control effort</em>, but you can create your own cost function to suit your problem.</p>
+
+<p>The results presented in this post utilize a method known as <a href="http://underactuated.csail.mit.edu/underactuated.html?chapter=12" target="_blank">direct collocation</a>.  We break up a starting trajectory into points along that trajectory.  These points are called <em>knots</em>.  The trajectories between knots are modeled as polynomials of the form:</p>
+
+\[\mathbf{q}_{i}(t) = b_0 + b_1 (t-t_i) + b_2 (t-t_i)^2 \dots + u_i\]
+
+<p>with coefficients \(b_i\) chosen such that the polynomials are \(C^1\) continuous at the knot points.  \(C^1\) continuity means continuous with continuous first derivative.  The problem then becomes how do we construct a sequence of controls \(\{u_1, u_2, \cdots\}\) at the knot points that matches the system dynamics and is optimal with respect to a desired cost function?  We can do so relatively simply, it turns out, with CONSTRAINED OPTIMIZATION!!  The constrained optimization problem to be solved can be stated explicitly as:</p>
+
+<blockquote>
+  <p>Assuming a piecewise polynomial representation of \(\mathbf{q}(t)\), find the control sequence \(\{u_1, u_2, \cdots\}\) at knots \(\{ \mathbf{q}_1, \mathbf{q}_2, \cdots \}\) constrained by the given system’s dynamics that minimizes overall cost, which can be represented as a function: \(C( \{\mathbf{q}_i\}, \{u_i\})\).</p>
+</blockquote>
+
+<p>Typical costs are:</p>
+<ul>
+  <li>Minimize control effort: like minimizing fuel consumption of a spacecraft.</li>
+  <li>Minimize path length in state space:  like a line integral along a trajectory</li>
+  <li>Minimize jerk: if there are desired comfort constraints, you can construct a control sequence to avoid excessive jostling</li>
+</ul>
+
+<h5 id="why-trajectory-planning">Why trajectory planning?</h5>
+<p>Well, it’s totally awesome for one thing; breaking down complicated control problems into simpler subproblems and letting a computer crunch out an optimal solution is a nice merging of physics and computation.  Personally, I like that it’s a way of exploiting prior system knowledge to construct a controller that utilizes more than current state feedback.</p>
+
+<p>I’ll do more posts on trajectory planning in the future, so stay tuned.</p>
+
+<h3 id="results">Results</h3>
+
+<p>I’ll now go through some results that I generated using CSAIL’s <a href="http://drake.mit.edu/" target="_blank">Drake</a> API.  This is a nice package for investigating control of real nonlinear dynamical systems.  It’s well documented for the most part and it does a lot of cool things out of the box.  Like all niche software, though, be prepared to put in some serious effort learning the API.</p>
+
+<h4 id="standing-up">Standing up</h4>
+
+<p>The first question I’ll address is:  How can I make the acrobot stand upright?  From basic systems theory, we know that the acrobot has two equilibria:  a stable point with \(q_1=q_2=0, \dot q_1=\dot q_2 = 0\) and an unstable point with \(q_1=\pi, q_2=0, \dot q_1=\dot q_2 = 0\).  The stable equilibrium is so because the system has lowest possible energy, whereas the unstable equilibrium has higher potential energy.  Standing the acrobot up is challenging because any kind of unaccounted-for disturbance about the upright equilibrium will allow gravity to pull the system downward towards the stable equilibrium.</p>
+
+<p>Let’s start with the video link presented earlier; the one showing how chaotic the system can be with improperly applied feedback control:</p>
+
+<p><a href="https://www.youtube.com/watch?v=IehcrBnQH4c" target="_blank"><img src="https://img.youtube.com/vi/IehcrBnQH4c/0.jpg" alt="badTune"></a></p>
+
+<p>Clearly, there’s some work to be done here.  The system response is erratic and hints at the presence of low-dimensional chaos, specifically:</p>
+<ul>
+  <li>lack of periodicity</li>
+  <li>irregular speedup/slowdown</li>
+</ul>
+
+<p>If we start far from the equilibrium, I suspect that LQR won’t be very effective, so I’ll look at using the other two controllers first; maybe they will be enough.  The video link below shows results using partial feedback linearization and energy shaping control:</p>
+
+<p><a href="https://www.youtube.com/watch?v=4HuwLA4BUW4" target="_blank"><img src="https://img.youtube.com/vi/4HuwLA4BUW4/0.jpg" alt="swingup nolqr"></a></p>
+
+<p>Ok, these controllers get us close to the goal.  Once there, though, the controllers don’t have fine enough resolution to keep the system there indefinitely.  I’ll bet LQR could be applied exclusively once we get close enough to the equilibrium.  I’ve added a condition to the controller to only use LQR once the <a href="https://stanford.edu/class/ee363/lectures/clqr.pdf">cost-to-go</a> has gotten sufficiently small.  Results utilizing this new controller applied to the original problem are linked below:</p>
+
+<p><a href="https://www.youtube.com/watch?v=38QEe6l5pvM" target="_blank"><img src="https://img.youtube.com/vi/38QEe6l5pvM/0.jpg" alt="swingup"></a></p>
+
+<p>Whoa!  Much better!  The controller actually stabilizes the acrobot about the desired point, and quickly so.  The big takeaways here are:</p>
+<ul>
+  <li>Energy shaping and PFL controllers are useful for points far from the upright equilibrium</li>
+  <li>LQR is useful for disturbance rejection near the upright equilibrium.</li>
+</ul>
+
+<h4 id="catching-a-thrown-ball">Catching a thrown ball</h4>
+<p>Now, for something more challenging:  Can we get the acrobot to catch something?  There are a lot of implementation details here that I won’t discuss; such as creating the system Jacobian matrix, objective construction, etc…  I only aim to show that Drake can be used to construct a trajectory for catching a ball with well-known, and perturbed, system dynamics.  The basic idea here is that direct collocation is used for generating an optimal control sequence for catching the ball with the acrobot.</p>
+
+<p>First, the easiest case; assume we have perfect state information.  See the video link below:</p>
+
+<p><a href="https://www.youtube.com/watch?v=rzzB-EnHQGs" target="_blank"><img src="https://img.youtube.com/vi/rzzB-EnHQGs/0.jpg" alt="catch"></a></p>
+
+<p>Nice; the acrobot wiggles about and catches the ball at the end of the second bar.  Now would be a natural point to discuss trajectory planning in general.  The trajectory shown above was planned using perfect information, i.e. it is <em>open-loop</em>.  In the real-world, we can typically compile pretty good, though imperfect, information.  How well does the planned trajectory do if we perturb the system?  At this point, we have <em>pretty good</em> state information; but how sensitive is our solution to small changes?</p>
+
+<p><a href="https://www.youtube.com/watch?v=fDE-I1IGxGw" target="_blank"><img src="https://img.youtube.com/vi/fDE-I1IGxGw/0.jpg" alt="nocatch"></a></p>
+
+<p>I guess the answer to the previous question is:  pretty darned sensitive!  Perhaps there is a way to stabilize our open-loop solution with feedback control.  What I’m thinking is that our open-loop trajectory is kind of like a stable structure in our problem space, and perturbing this would result in something that might lie along a mostly-linear extension of that stable structure.  So, perhaps, we could implement an LQR controller that would keep the dynamics of the perturbed system in the linear regime allowing us to account for perturbations to the original open-loop trajectory.  Let’s see if such a solution would work:</p>
+
+<p><a href="https://www.youtube.com/watch?v=ceBtbJHR4Rw" target="_blank"><img src="https://img.youtube.com/vi/ceBtbJHR4Rw/0.jpg" alt="catchp"></a></p>
+
+<p>Cool!  It worked!</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>I’ve presented a lot of content with little technical detail.  I encourage you to comment with kudos and suggestions for content improvement.  I’ve tried to link to sources that provide clarification and deeper exploration of the content presented within this post, but if anything is lacking please say so.  I really like working with the acrobot; I think it’s a cool system for presenting ideas to try for more complicated systems.  Thanks for reading!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2017/acrobot';
+      var disqus_title      = "Acrobot";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    © Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

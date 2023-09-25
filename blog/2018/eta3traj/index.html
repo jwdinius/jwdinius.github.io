@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Smooth Path Planning - overlaying a velocity profile</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2018/eta3traj/">
+  
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "all"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\(', '\)'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<!<script type="text/javascript"
+src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">>
+<script type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Smooth Path Planning - overlaying a velocity profile</h1>
+    <p class="post-meta">September 2, 2018</p>
+  </header>
+
+  <article class="post-content">
+    <p><a href="https://github.com/jwdinius/PythonRobotics/tree/eta3_traj2">Repo</a></p>
+
+<h3 id="introduction">Introduction</h3>
+<p>This post extends work discussed <a href="/blog/2018/eta3path">previously</a>.  In that post, I presented a method for constructing geometrically-continuous paths up to third-order.  I will now discuss how to take that path and build a trajectory that drives along it.  The notion of “drives” is important here: trajectory motion is assumed <em>tangent</em> to the path.  This restriction refers to car-like robots that, under normal conditions, point their front-end in the direction of motion.</p>
+
+<p>In this context, “trajectory” means a time-series of pose data, \((x,y,\theta)\), along with controls, \((v,\omega)\), that define a motion profile for a <a href="https://en.wikipedia.org/wiki/Differential_wheeled_robot">differential-drive robot</a>.  Importantly, the method that I discuss here can be applied to any underlying path geometry, not just \(\eta^3\)-splines.</p>
+
+<p>Before going into the method, I will outline some constraints that are imposed to make the problem tractable:</p>
+
+<ul>
+  <li>Trajectories have fixed initial condition.  The robot begins at known velocity \(v_0 \le v_{max}\) and acceleration \(a_0 \le a_{max}\), where \(v_{max}, a_{max}\) are the maximum velocity and acceleration, respectively.</li>
+  <li>Trajectories must terminate with zero velocity <em>and</em> acceleration.  This makes sense, because most objectives involve getting to some particular waypoint before being assigned a new task/action.</li>
+  <li>Kinematic limits must be obeyed everywhere along the trajectory.  These limits are on velocity, acceleration, and jerk.</li>
+  <li>The kinematic limits are symmetric:  \(*_{min} = -*_{max}\).</li>
+  <li>The maximum velocity may need to be reduced to accommodate the other two constraints.  It may not be feasible to reach the desired maximum velocity given the length of the underlying path and the maximum acceleration and jerk limits.</li>
+</ul>
+
+<h3 id="the-method">The Method</h3>
+<p>The method I propose here is homespun in that I have not found many resources that approach the problem in a similar way.  In a nutshell, the robot begins by applying the maximum jerk, \(j_{max}\), until the maximum acceleration is reached.  Once maximum acceleration has been achieved, the robot will continue accelerating until the time when minimum jerk, \(j_{min} = -j_{max}\), needs to be applied to smoothly transition from acceleration to maximum speed with zero acceleration.  At this point, if there is enough path length to do so, the robot will cruise at the maximum speed \(v_{max}\).  Otherwise, the robot will continue applying minimum jerk until maximum deceleration has been achieved.  Deceleration at maximum rate continues until the time when the robot needs to apply maximum jerk to finish at zero velocity and zero acceleration.</p>
+
+<p>Before going through each section in more detail, a kinematic assessment needs to be made regarding whether or not the maximum velocity can be achieved given the other limits and the path given.  This analysis requires a shooting method, of sorts, where a trajectory starting at the given initial conditions is shot forwards in time and a trajectory starting from the desired terminal condition is shot backwards in time.  The terminal point in time of each trajectory is when it reaches the <em>desired</em> velocity \(v_{max}\).  The intersection of the two trajectories is then analyzed based upon the sum of the two trajectory lengths.  If this sum is greater than the total path length, then the desired maximum velocity, \(v_{max}\) cannot be achieved and the maximum velocity must be adjusted, \(v'_{max} &lt; v_{max}\).  Otherwise, \(v'_{max} = v_{max}\) and there will be some amount of <em>cruising</em> time; time where the robot moves at \(v'_{max}\).</p>
+
+<p>For details of how this analysis is done in practice, please see the <a href="https://github.com/jwdinius/PythonRobotics/tree/eta3_traj2">implementation</a>.</p>
+
+<p>I’ll now go through the math for each section.</p>
+
+<h4 id="section-1-maximum-jerk-part-1">Section 1: Maximum jerk, part 1</h4>
+<p>The robot starts at $v = v_0$ and $a=a_0$.  The amount of time needed to get to maximum acceleration from the initial acceleration $a_0$ is:</p>
+
+\[\begin{eqnarray}
+\Delta a &amp;=&amp; a_{max} - a_0 \\
+\Delta t &amp;=&amp; \frac{\Delta a}{j_{max}}
+\end{eqnarray}\]
+
+<p>Let $s_{s_1}$ denote the path length traversed by the robot while applying maximum jerk:</p>
+
+\[\begin{eqnarray}
+s_{s_1} &amp;=&amp; v_0 \Delta t + \frac{1}{2} a_0 \Delta t^2 + \frac{1}{6} j_{max} \Delta t^3. \\
+v_{s_1} &amp;=&amp; v_0 + \frac{1}{2} j_{max} \Delta t^2
+\end{eqnarray}\]
+
+<h4 id="section-2-maximum-acceleration">Section 2: Maximum acceleration</h4>
+<p>The robot continues at maximum acceleration until it needs to begin slowing down to hit $v_{max}$.  The time-of-traversal for this second section is:</p>
+
+\[\begin{eqnarray}
+v_f &amp;\equiv&amp; v'_{max} - \frac{a_{max}^2}{2 j_{max}} \\
+\Delta v &amp;=&amp; v_f - v_{s_1} \\
+\Delta t &amp;=&amp; \frac{\Delta v}{a_{max}}
+\end{eqnarray}\]
+
+<p>Let $s_{s_2}$ denote the path length traversed by the robot while applying maximum acceleration:</p>
+
+\[\begin{eqnarray}
+s_{s_2} &amp;=&amp; v_{s_1} \Delta t + \frac{1}{2} a_{max} \Delta t^2 \\
+v_{s_2} &amp;=&amp; v_{s_1} + a_{max} \Delta t.
+\end{eqnarray}\]
+
+<h4 id="section-3-minimum-jerk-part-1">Section 3: Minimum jerk, part 1</h4>
+
+<p>In order to obey the jerk limits, the robot must apply minimum jerk to take out all of the acceleration.</p>
+
+\[\begin{eqnarray}
+\Delta a &amp;=&amp; 0 - a_{max} = -a_{max} \\
+\Delta t &amp;=&amp; \frac{-a_{max}}{j_{min}} = \frac{a_{max}}{j_{max}}
+\end{eqnarray}\]
+
+<p>Let $s_{s_3}$ denote the path length traversed by the robot while applying minimum jerk:</p>
+
+\[\begin{eqnarray}
+s_{s_3} &amp;=&amp; v_{s_2} \Delta t + \frac{1}{6} j_{min} \Delta t^3 \\
+v_{s_3} &amp;=&amp; v_{s_2} + \frac{1}{2} j_{min} \Delta t^2.
+\end{eqnarray}\]
+
+<h4 id="section-4-cruise-initial-consideration">Section 4: Cruise, initial consideration.</h4>
+
+<p>If the initial analysis showed that there was remaining path after doing the shooting method discussed, then there will be a cruise section.  The math of the cruise section is the easiest because there is no velocity change.  Logically, it makes the most sense to consider this segment last, because we will take whatever unaccounted-for length and apply it as a cruise section.</p>
+
+<h4 id="section-5-minimum-jerk-part-2">Section 5: Minimum jerk, part 2</h4>
+
+<p>At the end of the cruise section, or the end of the first minimum jerk section if there is no cruise section, apply minimum jerk again until max <em>deceleration</em> is reached.</p>
+
+\[\begin{eqnarray}
+\Delta a &amp;=&amp; a_{min} - 0 = -a_{max} \\
+\Delta t &amp;=&amp; \frac{-a_{max}}{j_{min}} = \frac{a_{max}}{j_{max}}
+\end{eqnarray}\]
+
+<p>Let $s_{s_3}$ denote the path length traversed by the robot while again applying minimum jerk:</p>
+
+\[\begin{eqnarray}
+s_{s_5} &amp;=&amp; v'_{max} \Delta t + \frac{1}{6} j_{min} \Delta t^3 \\
+v_{s_5} &amp;=&amp; v'_{max} + \frac{1}{2} j_{min} \Delta t^2.
+\end{eqnarray}\]
+
+<h4 id="section-6-minimum-acceleration">Section 6: Minimum acceleration</h4>
+
+<p>The robot will continue decelerating at \(a_{min}\) until the time when it needs to apply maximum jerk to hit the terminal constraint of zero velocity and acceleration.</p>
+
+\[\begin{eqnarray}
+\Delta v &amp;=&amp; v_{s_5} - \frac{a_{min}^2}{2 j_{max}} \\
+\Delta t &amp;=&amp; \frac{\Delta v}{a_{max}}
+\end{eqnarray}\]
+
+<p>Let $s_{s_6}$ denote the path length traversed by the robot while applying minimum acceleration:</p>
+
+\[\begin{eqnarray}
+s_{s_6} &amp;=&amp; v_{s_5} \Delta t + \frac{1}{2} a_{min} \Delta t^2 \\
+v_{s_6} &amp;=&amp; v_{s_5} + a_{min} \Delta t.
+\end{eqnarray}\]
+
+<h4 id="section-7-maximum-jerk-part-2">Section 7: Maximum jerk, part 2</h4>
+
+<p>Finally, to come to a stop at zero velocity we again apply maximum jerk.
+\(\begin{eqnarray}
+\Delta a &amp;=&amp; 0-a_{min} = a_{max} \\
+\Delta t &amp;=&amp; \frac{\Delta a}{j_{max}}
+\end{eqnarray}\)</p>
+
+<p>Let $s_{s_7}$ denote the path length traversed by the robot while again applying maximum jerk:</p>
+
+\[\begin{eqnarray}
+s_{s_7} &amp;=&amp; v_{s_6} \Delta t - \frac{1}{6} j_{max} \Delta t^3. \\
+v_{s_7} &amp;=&amp; v_{s_6} - \frac{1}{2} j_{max} \Delta t^2
+\end{eqnarray}\]
+
+<h4 id="section-4-cruise-final-consideration">Section 4: Cruise, final consideration</h4>
+
+<p>At this point, we have everything we need to determine how long of a section we will be able to cruise along at \(v'_{max}\).  Upon construction of the path, we computed a total segment length, \(s_{tot}\), from which we will now subtract all of the computed segment lengths thus far:</p>
+
+\[\begin{eqnarray}
+s_{s_4} &amp;=&amp; s_{tot} - \sum_{i \neq 4} s_{s_i} \\
+\Delta t &amp;=&amp; \frac{v'_{max}}{s_{s_4}},
+\end{eqnarray}\]
+
+<p>where, again, \(\Delta t\) is the time-of-traversal.</p>
+
+<h3 id="implementation-details">Implementation Details</h3>
+
+<h4 id="finding-the-point-along-the-curve-at-a-given-timevelocity">Finding the point along the curve at a given time/velocity</h4>
+<p>Recall that paths are typically composed of segments stitched together, each one of which is parametrized by a continuous parameter \(u \in [0, 1]\).  Now that we are trying to overlay a velocity profile on top of these path segments, we need to be careful to correctly map our current point, as constructed by our integrated velocity profile, \(s(t) = \int_0^t v(\tau) d \tau\), to the corresponding \(u\) on the current path. The objective, stated mathematically, is:</p>
+
+<blockquote>
+  <p>For any \(t \in [0, T]\), \(T\) is the final trajectory time, find the \(u\) along the path such that 
+\(\begin{equation}
+s(u) \equiv \int_0^{u} \dot s(\tau) d \tau = \int_0^t v(\tau) d \tau
+\end{equation}\) 
+given a velocity profile that also parametrizes the path.  \(\dot s(\tau) \equiv \sqrt{\dot x(\tau)^2 + \dot y(\tau)^2}\).</p>
+</blockquote>
+
+<p>This problem is solved using the <a href="https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus">Fundamental Theorem of Calculus, part 1</a> together with a <a href="https://en.wikipedia.org/wiki/Newton%27s_method">Newton iteration</a> scheme.  The basic idea is that the two methods are used together to find the root of the nonlinear equation:</p>
+
+\[\begin{equation}
+f(u) = \int_0^u \dot s(\tau) d \tau - \int_0^t v(t) dt,
+\end{equation}\]
+
+<p>where \(t, v(t)\) are known and \(s(\tau)\) is constructed during the initial path building step.</p>
+
+<h3 id="application">Application</h3>
+<p>I begin with the path constructed in the <a href="../eta3path">previous post</a>:</p>
+
+<p align="center"> 
+<img src="/assets/img/smooth_path_post/Eta3Path.png" />
+</p>
+
+<p>Now, I apply kinematic limits of \((v_{max}, a_{max}, j_{max}) = (2, 0.5, 1)\), where all units are SI.  The resulting trajectory, represented as a colormap, is:</p>
+
+<p align="center"> 
+<img src="/assets/img/trajectory_planner/colormap.png" />
+</p>
+
+<p>The velocity profiles, shown on one chart with two \(y\)-axes, is:</p>
+
+<p align="center"> 
+<img src="/assets/img/trajectory_planner/velocities.png" />
+</p>
+
+<p>As expected, given the work on the <a href="../eta3path">path planner</a>, the angular velocity is continuous.  For most applications, this is very important, as the angular velocity can lead to wheel slip, instability, or other undesirable effects.</p>
+
+<h3 id="concluding-remarks">Concluding Remarks</h3>
+
+<p>A way of overlaying a velocity profile over a segments connecting multiple waypoints was presented.  The velocity profile constructed obeys kinematic limits for maximum velocity, acceleration, and jerk.  The angular velocity signal was shown to be continuous, which reinforces the idea continuous curvature presented in the <a href="blog/2018/eta3path">\(\eta^3\) spline path planner</a>.  This mini-project was interesting and fun to work on.  I hope that you, the interested reader, will find something worthwhile in either this post or my work supporting it.  Cheers!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2018/eta3traj';
+      var disqus_title      = "Smooth Path Planning - overlaying a velocity profile";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Point Cloud Registration as Optimization, Code Implementation</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2020/point-match-sol/">
+  
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "all"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\(', '\)'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<!<script type="text/javascript"
+src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">>
+<script type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Point Cloud Registration as Optimization, Code Implementation</h1>
+    <p class="post-meta">March 1, 2020</p>
+  </header>
+
+  <article class="post-content">
+    <p>tl; dr:  Here’s a <a href="https://github.com/jwdinius/point-registration-with-relaxation">link</a> to the GitHub repo.  The <code class="language-plaintext highlighter-rouge">README.md</code> is pretty descriptive.  Clone it, fork it, whatever.  You should be able to get up-and-running quickly.</p>
+
+<p>In previous posts, <a href="https://jwdinius.github.io/blog/2019/point-match/">this one</a> and <a href="https://jwdinius.github.io/blog/2019/point-match-cont/">this one</a>, I set up a quadratic optimization problem for finding the best correspondences between two point sets, also called <em>clouds</em>.  If you haven’t already seen these, I recommend going back and looking at them before going through the this post.  Your call.</p>
+
+<h2 id="a-bit-of-context">A bit of context</h2>
+<p>At last year’s CVPR, I sat through a really cool talk presenting the <a href="https://arxiv.org/abs/1904.03483">SDRSAC paper</a>.  The results presented seemed really promising and I wanted to see if I could reproduce them.  There were a lot of issues encountered along the way.  In this post, I will highlight and dig deeper into some of these issues.</p>
+
+<h1 id="implementation">Implementation</h1>
+
+<h2 id="infrastructure">Infrastructure</h2>
+<p>At this point, I use <a href="www.docker.com">Docker</a> for all of my personal projects.  I just find that it is a more flexible solution than requiring users to install a bunch of dependencies on their machine.  There’s an added bonus as well:  <em>new users can reproduce original results with little-to-no added friction</em>.</p>
+
+<h2 id="language">Language</h2>
+<p>I chose C++ because performance was a concern.  I wanted to have the performance of a strongly-typed language combined with the large suite of supporting libraries written in it.  To handle automatic resource management, I compiled using the C++-14 standard.  This allowed transfer of ownership of resources to smart pointers through the use of the <code class="language-plaintext highlighter-rouge">std::make_unique</code> and <code class="language-plaintext highlighter-rouge">std::make_shared</code> functions introduced by the C++-14 standard.</p>
+
+<h3 id="linear-algebra-library">Linear algebra library</h3>
+<p>Despite <a href="http://eigen.tuxfamily.org/index.php?title=Main_Page">Eigen</a>’s popularity over the last decade, I decided to go with <a href="http://arma.sourceforge.net/">Armadillo</a>.  The reasons for my choice include:</p>
+
+<ul>
+  <li>Documentation: <em>the wiki is great</em></li>
+  <li><a href="http://nghiaho.com/?p=1726">Speed</a></li>
+  <li>Matlab-like syntax: <em>though 0-based indexing of C++ is still used</em></li>
+  <li>Functionality - <em>reshaping, resampling, and operations like singular-value decomposition come for free</em></li>
+</ul>
+
+<h3 id="optimization">Optimization</h3>
+
+<h4 id="nonlinear-optimization-framework">Nonlinear optimization framework</h4>
+<p>I had originally wanted to use a semidefinite solver, SDP,  like the original SDRSAC work, but finding such a solver proved to be a major roadblock.  My requirements for the solver were:</p>
+
+<ul>
+  <li>It had to be free - <em>I wanted to be able to share this work with everyone</em></li>
+  <li>It had to be well-supported - <em>I didn’t want to spend a lot of time debugging an external</em></li>
+  <li>It had to have a simple interface - <em>I wanted to be able to define the optimization objective in a clear, intuitive format</em></li>
+</ul>
+
+<p>Some libraries considered were <a href="https://github.com/coin-or/Csdp/wiki">CSDP</a>, <a href="http://sdpa.sourceforge.net/">SDPA</a>, and <a href="http://ensmallen.org/">Ensmallen</a>, however <em>none</em> of these libraries, when evaluated, met the three criteria above.</p>
+
+<p>The choice of semidefinite solver was driven primarily by the structure of the optimization objective, however when looking into some comparisons, like in Section 5.4 of this <a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.140.910&amp;rep=rep1&amp;type=pdf">paper</a>, I convinced myself that a more general optimization framework could be effective, so I decided to go with <a href="https://coin-or.github.io/Ipopt/">IPOPT</a>.  IPOPT meets all of the above requirements and, as a bonus, I have used it before in other projects; see <a href="https://jwdinius.github.io/blog/2018/udacity_sdcnd/">this</a>.</p>
+
+<p>The translation of the optimization constraints was also <em>much</em> easier for the IPOPT formulation when compared to the SDP formulation.  Don’t take my word for it, though:  compare the constraints presented in the posts referenced above to the ones in the SDRSAC paper.</p>
+
+<h4 id="linear-correction">Linear correction</h4>
+<p>As in the SDRSAC paper, depending upon the convergence criteria imposed on the nonlinear optimizer, the resulting solution to the optimization objective <em>may not be a valid member of the desired solution space</em>!  To fix this, I needed to find an implementation of something akin to the <a href="http://fourier.eng.hmc.edu/e176/lectures/NM/node32.html">simplex algorithm</a> for projecting the solution to the nonlinear problem onto the solution space: 0 for non-matches, 1 for matches.  I was able to find an implementation in Google’s <a href="https://developers.google.com/optimization/lp/lp">ORTools</a> which meets the requirements I outlined above for the nonlinear optimizer above.</p>
+
+<h3 id="data-creation-and-performance-analysis">Data creation and performance analysis</h3>
+<p>I knew that I wanted to be able to easily create datasets, run the optimization, and quickly analyze the results graphically.  The native C++ support for such capabilities is not very flexible, so I decided to wrap the main function call in a Pythonic wrapper using <a href="https://www.boost.org/doc/libs/1_70_0/libs/python/doc/html/index.html"><code class="language-plaintext highlighter-rouge">Boost::Python</code></a>.  This allowed me to use the <a href="https://numpy.org/"><code class="language-plaintext highlighter-rouge">numpy</code></a> suite of tools for creating point clouds to be passed to the algorithm and the plotting capabilities of <a href="https://matplotlib.org/"><code class="language-plaintext highlighter-rouge">matplotlib</code></a> to visualize the output.  I found that, by writing the wrapper, it was a lot easier to identify system-level issues while developing the algorithm.</p>
+
+<h2 id="testing">Testing</h2>
+<p>Testing is a big part of my approach to application development.  Though I didn’t follow the full principles of TDD, I did try to capture test cases for all function calls under both nominal and off-nominal conditions.  This approach gave me the confidence to try out things quickly and verify if the expected behavior was observed.  As a follow-on, it allowed me to catch bugs and identify corner-cases much more quickly than traditional approaches; i.e. top-down development with little to no unit testing.</p>
+
+<p>To automatically execute and generate a test report, I built my unit tests using <a href="https://www.boost.org/doc/libs/1_45_0/libs/test/doc/html/utf.html">Boost’s unit test</a>.  After building the shared library, the unit tests can be built with <code class="language-plaintext highlighter-rouge">make test</code> and the pass/fail data is reported automatically.</p>
+
+<h2 id="code-quality-and-standards-checking">Code quality and standards-checking</h2>
+<p>I have included a wrapper script in the GitHub repo that does a quick static code check using <a href="https://github.com/cpplint/cpplint"><code class="language-plaintext highlighter-rouge">cpplint</code></a>, which verifies that the code meets common style conventions for C++.  This helps to keep the repo’s implementation consistent should additional features be added down the road.</p>
+
+<h1 id="summary-and-future-work">Summary and future work</h1>
+<p>In this post, I presented my design choices for the computational solution to the problem of point cloud matching, which I developed in pair of previous posts.  I have made the work available for others to use and contribute to, should they wish to do so.  Some things that I would like to add to the repo would be in no particular order:</p>
+
+<ul>
+  <li>Continuous Integration, CI - <em>this way I can automatically check that all tests pass before merging new commits</em></li>
+  <li>Code coverage tests - <em>I’d really like to make sure that there are no corner cases that I am neglecting in my test-suite</em></li>
+  <li>Adding <a href="https://en.wikipedia.org/wiki/Clique_problem#Finding_maximum_cliques_in_arbitrary_graphs">maximum clique algorithm</a> correspondence solver - <em>more on this to come in a future post!</em></li>
+</ul>
+
+<p>Thanks for reading!  Check out the link at the top of this post for the GitHub repo.</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2020/point-match-sol';
+      var disqus_title      = "Point Cloud Registration as Optimization, Code Implementation";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

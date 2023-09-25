@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Call C++ From Python Using Boost</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2018/boost/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"></path>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"></path>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Call C++ From Python Using Boost</h1>
+    <p class="post-meta">June 3, 2018</p>
+  </header>
+
+  <article class="post-content">
+    <h3 id="overview">Overview</h3>
+<p>Many times I have come across the <em>same</em> problem:  I want to test an algorithm that is written in C/C++ and be able to prod/plot/or otherwise review algorithm outputs.  I have never been a fan of gnuplot, so writing code to plot program outputs directly from C/C++ is out.  Likewise, the effort needed to translate the algorithm from C/C++ to python can be significant, so this doesn’t work in practice, either.  Enter a third option: <em>wrap that code and call it from python</em>!</p>
+
+<p>There are a few options for doing this, but the big two are <a href="http://www.swig.org/exec.html">SWIG</a> and <a href="https://www.boost.org/doc/libs/1_56_0/libs/python/doc/index.html">Boost</a>.  In this post, I will talk about the second option.  So, without further ado, let’s get to it!</p>
+
+<h3 id="what-is-boost">What is Boost?</h3>
+<p>Boost is a library project written in C++ that incorporates a <em>very</em> wide array of functionality; from geometric modeling, to memory management, to, you guessed it, wrapping C++ code in python.  I won’t spend much time talking about the Boost project in its entirety; I refer interested readers to the <a href="https://www.boost.org">Boost homepage</a>.  What I will focus on in the remainder of this post, is how to expose a simplified API written in C++ to python.  In less jargony prose: This post will show you how to call C++ from python.</p>
+
+<h3 id="prerequisites">Prerequisites</h3>
+<p>To follow along with the remainder of this post on your own, I invite you to checkout <a href="https://github.com/jwdinius/call-cpp-from-python-with-boost">the GitHub repo</a> and build the project.  Pay particular attention to the README.md in the repo, as it explains all of the necessary steps to build and test the project.</p>
+
+<h3 id="what-is-going-on-in-the-repo">What is going on in the repo?</h3>
+<p>I’ll assume that, because of my awesome documentation skills, you were able to build and run the project targets <img class="emoji" title=":wink:" alt=":wink:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f609.png" height="20" width="20">.  I’ll briefly describe what the source files in this repo are trying to do.  In what follows, <code class="language-plaintext highlighter-rouge">project_dir</code> will refer to the top-level project directory.</p>
+
+<h4 id="the-c-api">The C++ API</h4>
+<p>In <code class="language-plaintext highlighter-rouge">project_dir/include</code>, there is class definition file called, unsurprisingly, <code class="language-plaintext highlighter-rouge">class_def.hpp</code>:</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#pragma once
+</span><span class="c1">//! # defines</span>
+<span class="c1">//! c/c++ system headers</span>
+<span class="cp">#include &lt;cmath&gt;
+</span><span class="c1">//! other headers </span>
+<span class="c1">//!(this is where you might put references to the cpp code </span>
+<span class="c1">//! you would like to call from python)</span>
+<span class="k">class</span> <span class="nc">Exponentiate</span> <span class="p">{</span>
+ <span class="nl">public:</span>
+     <span class="c1">// if no base value is provided in the constructor, use "e"</span>
+     <span class="n">Exponentiate</span><span class="p">()</span> <span class="p">{</span> <span class="n">base_</span> <span class="o">=</span> <span class="n">M_E</span><span class="p">;</span> <span class="p">}</span>
+     <span class="c1">// constructor takes the base as an argument</span>
+     <span class="n">Exponentiate</span><span class="p">(</span><span class="kt">double</span> <span class="n">base</span><span class="p">)</span> <span class="p">{</span> <span class="n">base_</span> <span class="o">=</span> <span class="n">base</span><span class="p">;</span> <span class="p">}</span>
+     <span class="c1">// destructor</span>
+     <span class="o">~</span><span class="n">Exponentiate</span><span class="p">()</span> <span class="p">{}</span>
+     <span class="c1">// this class has a single method that raises a base to a power</span>
+     <span class="kt">double</span> <span class="n">RaiseToPower</span><span class="p">(</span><span class="kt">double</span> <span class="n">in</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="n">pow</span><span class="p">(</span><span class="n">base_</span><span class="p">,</span> <span class="n">in</span><span class="p">);</span> <span class="p">}</span>
+ <span class="nl">private:</span>
+     <span class="c1">// class has one private member, the base to raise to some user-input</span>
+     <span class="c1">// power</span>
+     <span class="kt">double</span> <span class="n">base_</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>With this file, I intended to create a simplified class that embodies interesting C++ features, namely</p>
+
+<ul>
+  <li>multiple constructors</li>
+  <li>external library calls (in this case, to the <code class="language-plaintext highlighter-rouge">cmath::pow</code> method)</li>
+</ul>
+
+<p>From this simple class defintion, it is easy to see that <code class="language-plaintext highlighter-rouge">Exponentiate</code> has one method, and that method raises some base, which can be defaulted to <code class="language-plaintext highlighter-rouge">e ~ 2.71828</code> or set via constructor, to some power that is input via external call.  To test how instances of this class function in an executable, I included <code class="language-plaintext highlighter-rouge">test_cpp_rtp</code>.  This executable is built alongside the python package.  I will discuss the python package in a bit.  For now, let’s experiment with <code class="language-plaintext highlighter-rouge">test_cpp_rtp</code> to see how the API works.  I suggest you walk through the source file <code class="language-plaintext highlighter-rouge">project_dir/test/main.cpp</code> so that you understand what it does.  There are three acceptable input schemes, and I will discuss them now:</p>
+
+<h5 id="0-inputs">0 inputs</h5>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./test_cpp_rtp
+No inputs entered, defaulting to base <span class="o">=</span> e and power <span class="o">=</span> 1.
+Final answer: base^power <span class="o">=</span> 2.71828.
+</code></pre></div></div>
+
+<p>By default, when neither a base nor a power is input on the command line, the default constructor is called, which sets the base equal to <code class="language-plaintext highlighter-rouge">e</code>, and the power is set to 1.</p>
+
+<h5 id="1-input">1 input</h5>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./test_cpp_rtp 2
+User entered power <span class="o">=</span> 2.  Using e as base.
+Final answer: base^power <span class="o">=</span> 7.38906
+</code></pre></div></div>
+
+<h5 id="2-inputs">2 inputs</h5>
+
+<pre><code class="language-base">./test_cpp_rtp 2 3
+User entered base = 2 and power = 3
+Final answer: base^power = 8
+</code></pre>
+
+<p>Ok great, we have a simple class that can take in a base and raise it to some power.  Now what?</p>
+
+<h4 id="enter-boost">Enter Boost</h4>
+
+<p>Now we get to the fun part: wrapping the code using Boost.  I will walk through the <a href="https://github.com/jwdinius/call-cpp-from-python-with-boost/blob/master/src/boost_wrapper.cpp">source file</a> that accomplishes this, chunk-by-chunk.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">//! c/c++ system headers</span>
+<span class="c1">//! other headers</span>
+<span class="cp">#include &lt;class_def.hpp&gt;
+#include &lt;boost/python.hpp&gt;
+</span></code></pre></div></div>
+
+<p>Here, I am just getting the class definition, where the class <code class="language-plaintext highlighter-rouge">Exponentiate</code> is defined, and the Boost header files.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// create class that will wrap our c++ code into python using boost</span>
+<span class="k">struct</span> <span class="nc">BoostPyWrapper</span> <span class="p">{</span>
+    <span class="c1">// we can expose either constructor from class_def, as well</span>
+    <span class="c1">// as both.  Let's expose both.  This just means that we can init</span>
+    <span class="c1">// python version using either an input argument or not.</span>
+    <span class="n">BoostPyWrapper</span><span class="p">()</span> <span class="o">:</span> <span class="n">e_</span><span class="p">(</span><span class="k">new</span> <span class="n">Exponentiate</span><span class="p">())</span> <span class="p">{}</span>
+    <span class="n">BoostPyWrapper</span><span class="p">(</span><span class="kt">double</span> <span class="n">base</span><span class="p">)</span> <span class="o">:</span> <span class="n">e_</span><span class="p">(</span><span class="k">new</span> <span class="n">Exponentiate</span><span class="p">(</span><span class="n">base</span><span class="p">))</span> <span class="p">{}</span>
+
+    <span class="c1">// create a python-callable method to raise base to an input power</span>
+    <span class="kt">double</span> <span class="n">raise_to_power</span><span class="p">(</span><span class="kt">double</span> <span class="n">in</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">e_</span><span class="o">-&gt;</span><span class="n">RaiseToPower</span><span class="p">(</span><span class="n">in</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// create a shared pointer to our Exponentiate instance</span>
+    <span class="n">boost</span><span class="o">::</span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Exponentiate</span><span class="o">&gt;</span> <span class="n">e_</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>This chunk creates a wrapper class whose sole member is a shared pointer to an instance of <code class="language-plaintext highlighter-rouge">Exponentiate</code>.  This instance is initialized by either the default or the input constructor.  Conceivably, the choice of constructor will be made by an <code class="language-plaintext highlighter-rouge">init</code> method called from python, but how can we accomplish this?</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// define boost python module</span>
+<span class="n">BOOST_PYTHON_MODULE</span><span class="p">(</span><span class="n">pyRTP</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">using</span> <span class="k">namespace</span> <span class="n">boost</span><span class="o">::</span><span class="n">python</span><span class="p">;</span>
+    <span class="c1">// this is where the magic happens</span>
+    <span class="c1">// here is where we define what is actually exposed to python</span>
+    <span class="c1">// and how to reference it</span>
+    <span class="n">class_</span><span class="o">&lt;</span><span class="n">BoostPyWrapper</span><span class="o">&gt;</span><span class="p">(</span><span class="s">"Exponentiate"</span><span class="p">,</span> <span class="n">init</span><span class="o">&lt;&gt;</span><span class="p">())</span>  <span class="c1">// default constructor</span>
+        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="n">init</span><span class="o">&lt;</span><span class="kt">double</span><span class="o">&gt;</span><span class="p">())</span>  <span class="c1">// constructor that takes a single argument</span>
+        <span class="p">.</span><span class="n">def</span><span class="p">(</span><span class="s">"raise_to_power"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">BoostPyWrapper</span><span class="o">::</span><span class="n">raise_to_power</span><span class="p">,</span> <span class="s">"perform the computation"</span><span class="p">);</span>  <span class="c1">// ref to our single method</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This final chunk is where the Boost-under-the-hood magic is used.  Using Boost, we are able to create a python module with the macro <code class="language-plaintext highlighter-rouge">BOOST_PYTHON_MODULE</code> (make sure that the name matches the name of the shared object library built in cmake!!).  We define a single python object, called <code class="language-plaintext highlighter-rouge">Exponentiate</code>, that is a module within <code class="language-plaintext highlighter-rouge">pyRTP</code>.  This object can be initialized with no arguments (this will invoke the default constructor <code class="language-plaintext highlighter-rouge">Exponentiate::Exponentiate()</code>) or with a <code class="language-plaintext highlighter-rouge">double</code> (the constructor that takes a double as an argument).  These two initialization methods are accomplished with the <code class="language-plaintext highlighter-rouge">init&lt;&gt;</code> and <code class="language-plaintext highlighter-rouge">init&lt;double&gt;</code> definitions.  Finally, we expose <code class="language-plaintext highlighter-rouge">Exponentiate::RaiseToPower</code> by passing a reference to <code class="language-plaintext highlighter-rouge">BoostPyWrapper::raise_to_power</code>, which is essentially a passthrough.  As far as the Boost part of the project goes, that’s it.  Pretty cool, right?</p>
+
+<h3 id="does-it-work">Does it work?</h3>
+<p>This is perhaps the most important question of all.  I have included a <a href="https://github.com/jwdinius/call-cpp-from-python-with-boost/blob/master/test/test.py">test file</a> that provides a few unit tests that you can run to verify that the wrapping process worked.  In this case, the python library <code class="language-plaintext highlighter-rouge">numpy</code> has a power function that can be used to test if the wrapped code gives the correct outputs.  In practice, you probably won’t have such a simple unit test procedure, but thankfully we do in this case.</p>
+
+<h3 id="parting-thoughts">Parting thoughts</h3>
+<p>In this tutorial, I provided a procedure for wrapping C++ code using the Boost libraries.  I tried to give a simple example that could be easily extended to more complicated APIs.  I wanted to put this together because many times in the past I have had occasion to port C++ into python for a variety of reasons and I really wished that I had found a tutorial similar to this one.  I hope that you found it useful.  Cheers!</p>
+
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2018/boost';
+      var disqus_title      = "Call C++ From Python Using Boost";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    © Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

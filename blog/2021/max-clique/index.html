@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Finding Point Cloud Correspondences Using Undirected Graphs</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2021/max-clique/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Finding Point Cloud Correspondences Using Undirected Graphs</h1>
+    <p class="post-meta">February 19, 2021</p>
+  </header>
+
+  <article class="post-content">
+    <p>In this post, I will discuss an alternate approach to the <a href="http://jwdinius.github.io/blog/2019/point-match/">point cloud correspondences problem</a> using graph-based methods.  This post is meant to be interactive and those who wish to run the code for yourselves, check out the <a href="https://github.com/jwdinius/practical-maximum-clique-repro/blob/master/MaximumClique.ipynb">jupyter notebook</a> from which this post was derived.</p>
+
+<p>Let’s start with some dependencies:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">time</span>
+</code></pre></div></div>
+
+<p>I want to create a set of points randomly sampled from a square.  These points will be used as the basis for subsequent demos.  First, let’s set the random seed for repeatability of experiments.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">11011</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>To setup the data for the experiments, we will define values for the following parameters:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">m</code> is number of points in source cloud</li>
+  <li><code class="language-plaintext highlighter-rouge">n</code> is number of points in target cloud</li>
+  <li><code class="language-plaintext highlighter-rouge">noise_val</code> is the 1-sigma value for applying noise (per channel $x,y$)</li>
+  <li><code class="language-plaintext highlighter-rouge">ang</code> is the rotation angle (ccw is positive) to apply</li>
+  <li><code class="language-plaintext highlighter-rouge">xt</code> is the $x$ translation to apply</li>
+  <li><code class="language-plaintext highlighter-rouge">yt</code> is the $y$ translation to apply</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">25</span>
+<span class="n">noise_val</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">ang</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.</span>
+<span class="n">xt</span><span class="p">,</span> <span class="n">yt</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span>
+<span class="n">side_length</span> <span class="o">=</span> <span class="mi">20</span>
+</code></pre></div></div>
+
+<p>Let’s sample some points and apply a transformation to get two point sets for comparison:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># uniformly sample on square with dimensions side_length x side_length
+# use homogeneous coordinates
+</span><span class="n">target_pts</span> <span class="o">=</span> <span class="n">side_length</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">random</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">side_length</span>
+<span class="n">target_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">target_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+<span class="c1"># transform
+</span><span class="n">ca</span><span class="p">,</span> <span class="n">sa</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">ang</span><span class="p">),</span> <span class="n">np</span><span class="p">.</span><span class="n">sin</span><span class="p">(</span><span class="n">ang</span><span class="p">)</span>
+<span class="n">tgt_to_src</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="n">ca</span><span class="p">,</span> <span class="n">sa</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">xt</span><span class="p">],</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">sa</span><span class="p">,</span> <span class="n">ca</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">yt</span><span class="p">],</span>
+                       <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">],</span>
+                       <span class="p">[</span><span class="mf">0.</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="n">target_pts_xform</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tgt_to_src</span><span class="p">,</span> <span class="n">target_pts</span><span class="p">)</span>
+<span class="n">correspondences</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">choice</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="c1"># subsample and reorder target points
+</span><span class="n">source_pts</span> <span class="o">=</span> <span class="n">target_pts_xform</span><span class="p">[:,</span> <span class="n">correspondences</span><span class="p">]</span> <span class="o">+</span> <span class="n">noise_val</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+<span class="n">source_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.</span>
+<span class="n">source_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.</span>
+</code></pre></div></div>
+
+<p>Recall:  A <em>correspondence</em> is encoded by two points:  one from the source point cloud and the other from the target point cloud.  Such correspondences can be encoded as vertices in an undirected graph enumerated as $i’ \equiv i n + j$, with source point $i$ and corresponding target point $j$.  For more details, check out the following <a href="https://arxiv.org/abs/1902.01534">paper</a>.  For comparison of methods below, let’s start by identifying the true correspondences between the source and target point sets and plot the data:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">correspondenceVertices</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># for comparison below
+</span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">correspondences</span><span class="p">):</span>
+    <span class="n">correspondenceVertices</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">"Correspondence vertices list is {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Correspondence vertices list is [23, 41, 72, 88, 105, 137, 165, 189, 219, 234, 267, 283, 301, 328, 374]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">ax1</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">target_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s">'o'</span><span class="p">,</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s">'r.'</span><span class="p">)</span>
+<span class="n">ax1</span><span class="p">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s">"y"</span><span class="p">)</span>
+<span class="n">ax1</span><span class="p">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">"Original Alignment"</span><span class="p">)</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">ax2</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">target_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s">'o'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"target"</span><span class="p">)</span>
+<span class="n">ax2</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">source_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="s">'r.'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"source"</span><span class="p">)</span>
+<span class="n">legend_made</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">correspondences</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">legend_made</span><span class="p">:</span>
+        <span class="n">ax2</span><span class="p">.</span><span class="n">plot</span><span class="p">([</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span><span class="p">],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]],</span> <span class="p">[</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]],</span> <span class="s">'b--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"correspondence"</span><span class="p">)</span>
+        <span class="n">legend_made</span> <span class="o">=</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax2</span><span class="p">.</span><span class="n">plot</span><span class="p">([</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">c</span><span class="p">],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">]],</span> <span class="p">[</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">]],</span> <span class="s">'b--'</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="p">.</span><span class="n">legend</span><span class="p">()</span>
+    <span class="n">ax2</span><span class="p">.</span><span class="n">set_title</span><span class="p">(</span><span class="s">"True Correspondences"</span><span class="p">)</span>
+    <span class="n">ax2</span><span class="p">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s">"x"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/output_9_0.png" alt="expected-output" /></p>
+
+<p>You’re probably asking at this point: <em>How do we go about actually finding the true correspondences?</em>  We need the notion of <em>pairwise consistency</em>:</p>
+
+<p>Two correspondences are pairwise consistent <em>iff</em>:</p>
+<ul>
+  <li>The source points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d1</code></li>
+  <li>The target points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d2</code></li>
+  <li>The absolute value of the difference between <code class="language-plaintext highlighter-rouge">d1</code> and <code class="language-plaintext highlighter-rouge">d2</code> is <em>at maximum</em> <code class="language-plaintext highlighter-rouge">epsilon</code> distance apart.</li>
+</ul>
+
+<p>for some <code class="language-plaintext highlighter-rouge">epsilon</code>, <code class="language-plaintext highlighter-rouge">d1</code>, and <code class="language-plaintext highlighter-rouge">d2</code> greater than 0. This provides a significant restriction/constraint for our problem, as it allows us to discard unreasonable correspondence edges based on a simple consistency check based on distance.</p>
+
+<p>We can create a pairwise-consistency check as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">pwThresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+    <span class="c1"># ci - i*n + i', i \in source, i' \in target
+</span>    <span class="c1"># cj - j*n + j', j \in source, j' \in target
+</span>    <span class="c1"># ci.x is 3x1 numpy array
+</span>    <span class="c1"># ci.y is 3x1 numpy array
+</span>    <span class="c1"># cj.x is 3x1 numpy array
+</span>    <span class="c1"># cj.y is 3x1 numpy array
+</span>    <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ci</span><span class="p">[</span><span class="s">"x"</span><span class="p">]</span> <span class="o">-</span> <span class="n">cj</span><span class="p">[</span><span class="s">"x"</span><span class="p">])</span>
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">norm</span><span class="p">(</span><span class="n">ci</span><span class="p">[</span><span class="s">"y"</span><span class="p">]</span> <span class="o">-</span> <span class="n">cj</span><span class="p">[</span><span class="s">"y"</span><span class="p">])</span>
+    <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="nb">abs</span><span class="p">(</span><span class="n">d1</span> <span class="o">-</span> <span class="n">d2</span><span class="p">)</span>
+    <span class="k">return</span>  <span class="n">d1</span> <span class="o">&gt;=</span> <span class="n">pwThresh</span> \
+        <span class="ow">and</span> <span class="n">d2</span> <span class="o">&gt;=</span> <span class="n">pwThresh</span> \
+        <span class="ow">and</span> <span class="n">d3</span> <span class="o">&lt;=</span> <span class="n">epsilon</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returns true when two correspondences, <code class="language-plaintext highlighter-rouge">ci</code> and <code class="language-plaintext highlighter-rouge">cj</code>, are pairwise consistent.  <em><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returning True means that we need to create and edge between the two input correspondence vertices.</em>  The graph structure should now be becoming clear in your mind: <em>possible correspondences are encoded as vertices of an undirected graph with edges between correspondences determined by the pairwise consistency check.</em>  To find the best possible set of correspondences, we can compute the <a href="https://cs.stanford.edu/people/eroberts/courses/soco/projects/2003-04/dna-computing/clique.htm"><em>maximum clique</em></a> of the graph, which represents the subgraph of largest size where all correspondence vertices are pairwise consistent with each other (i.e. have edges connecting each correspondence to every other correspondence in the subgraph).</p>
+
+<p>Before getting to a couple of approaches for computing the maximum clique, I’ll define a few helper functions for comparison of algorithm output to ground truth</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">cliqueOne</span><span class="p">,</span> <span class="n">cliqueTwo</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cliqueOne</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span> <span class="o">==</span> <span class="n">cliqueTwo</span><span class="p">.</span><span class="n">sort</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>User-defined constants:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">epsilon</code> above $\to$ <code class="language-plaintext highlighter-rouge">eps</code></li>
+  <li><code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> above $\to$ <code class="language-plaintext highlighter-rouge">pwThr</code></li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-1</span>
+<span class="n">pwThr</span> <span class="o">=</span> <span class="mf">1e-1</span>
+</code></pre></div></div>
+
+<p>Construct vertices and edges for maximum clique calculation.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">ci</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">j</span><span class="p">]}</span>
+                    <span class="n">cj</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">l</span><span class="p">]}</span>
+                    <span class="n">consis</span> <span class="o">=</span> <span class="n">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">eps</span><span class="p">,</span> <span class="n">pwThresh</span> <span class="o">=</span> <span class="n">pwThr</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">consis</span><span class="p">:</span>
+                        <span class="n">V1</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">j</span>
+                        <span class="n">V2</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">l</span>
+                        <span class="n">E</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">V1</span><span class="p">,</span> <span class="n">V2</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">V1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">V2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V2</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Python has a useful library for graph processing called <code class="language-plaintext highlighter-rouge">networkx</code>.  As a baseline, let’s setup a workflow using <code class="language-plaintext highlighter-rouge">networkx</code> to compute the maximum clique.</p>
+
+<h2 id="maximum-clique-identification-using-networkx">Maximum Clique Identification using <code class="language-plaintext highlighter-rouge">networkx</code></h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="n">nx</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="n">Graph</span><span class="p">()</span>
+<span class="n">G</span><span class="p">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cliques</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="p">.</span><span class="n">find_cliques_recursive</span><span class="p">(</span><span class="n">G</span><span class="p">))</span>
+<span class="c1">#plt.figure()
+#nx.draw(G, with_labels=True)
+</span><span class="n">maxClique</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">maxCliqueSize</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">tBegin</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cliques</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">maxCliqueSize</span><span class="p">:</span>
+        <span class="n">maxClique</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="n">maxCliqueSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+<span class="n">timeElapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tBegin</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">"Max clique was found in {}sec"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Max clique has size {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">maxCliqueSize</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Max clique is {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">maxClique</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.000392913818359375sec
+Max clique has size 15
+Max clique is [105, 234, 165, 72, 328, 41, 137, 267, 301, 219, 374, 88, 283, 189, 23]
+</code></pre></div></div>
+
+<p>Check that <code class="language-plaintext highlighter-rouge">maxClique</code> is equivalent to the true correspondences.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">"Is the correspondence list equivalent to the max clique?  {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxClique</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Is the correspondence list equivalent to the max clique?  True
+</code></pre></div></div>
+
+<p>The approach above shows that the max clique of the graph does, indeed, identify the true correspondences.  The approach above is useful if you are developing under a native Python environment.  Unfortunately, no equivalent library for C++ is available.  We can use branch-and-bound based algorithms for computing the max cliques in a purely algorithmic way; such approaches can be implemented easily in other languages.</p>
+
+<h2 id="practical-maximum-clique-algorithms">Practical Maximum Clique Algorithms</h2>
+
+<p>The first two max clique algorithms from <a href="https://arxiv.org/abs/1902.01534">here</a> are implemented below.  First, let’s define a few routines for computing needed quantities</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">vertex</span><span class="p">):</span>
+    <span class="n">adj</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">adj</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">vertex</span> <span class="o">!=</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">adj</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">adj</span>
+</code></pre></div></div>
+
+<p>As a quick check, reproduce the simple example from the paper:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># unit test for adjacency using graph from paper (Figure 2)
+</span><span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
+<span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"v: {}, adj(V): {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">adjacency</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">v</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>v: 1, adj(V): [2, 5, 6]
+v: 2, adj(V): [1, 3, 4, 5]
+v: 3, adj(V): [2, 4, 5]
+v: 4, adj(V): [2, 3, 5]
+v: 5, adj(V): [1, 2, 3, 4, 6]
+v: 6, adj(V): [1, 5]
+</code></pre></div></div>
+
+<h3 id="basic-bnb-algorithm-1">Basic BnB (Algorithm 1)</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcBasicBnB</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span>
+    <span class="s">"""
+    Algorithm 1 from paper "A Practical Maximal Clique for Matching with Pairwise Constraints" by
+    Bustos et.al
+    
+    args:
+    S - candidate vertices for expansion
+    edges - edges of (undirected) graph
+    """</span>
+    <span class="k">while</span> <span class="n">S</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Rbest</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">R</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">Sprime</span> <span class="o">=</span> <span class="p">[</span><span class="n">vert</span> <span class="k">for</span> <span class="n">vert</span> <span class="ow">in</span> <span class="n">S</span> <span class="k">if</span> <span class="n">vert</span> <span class="ow">in</span> <span class="n">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">v</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">Sprime</span><span class="p">:</span>
+            <span class="n">mcBasicBnB</span><span class="p">(</span><span class="n">Sprime</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">Rbest</span><span class="p">):</span>
+            <span class="n">Rbest</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+        <span class="n">R</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">S</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
+<span class="n">mcBasicBnB</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Rbest is: {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">Rbest</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [2, 3, 4, 5]
+</code></pre></div></div>
+
+<p>Which matches the article’s result.</p>
+
+<p>Quick check:  <em>Does</em> <code class="language-plaintext highlighter-rouge">mcqBasicBnB</code> <em>find the correspondences like the previous method tried (i.e. the one using</em> <code class="language-plaintext highlighter-rouge">networkx</code> <em>)?</em></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">ci</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">j</span><span class="p">]}</span>
+                    <span class="n">cj</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">l</span><span class="p">]}</span>
+                    <span class="n">consis</span> <span class="o">=</span> <span class="n">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">eps</span><span class="p">,</span> <span class="n">pwThresh</span> <span class="o">=</span> <span class="n">pwThr</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">consis</span><span class="p">:</span>
+                        <span class="n">V1</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">j</span>
+                        <span class="n">V2</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">l</span>
+                        <span class="n">E</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">V1</span><span class="p">,</span> <span class="n">V2</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">V1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">V2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V2</span><span class="p">)</span>
+<span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">tBegin</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">mcBasicBnB</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+<span class="n">timeElapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tBegin</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Max clique was found in {}sec"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
+<span class="n">maxCliqueBasicBnB</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">Rbest</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Is the correspondence list equivalent to the mcBasicBnB maximum clique?  {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxCliqueBasicBnB</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 4.391311883926392sec
+Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
+</code></pre></div></div>
+
+<p>Cool.  <code class="language-plaintext highlighter-rouge">maxCliqueBasicBnB</code> works but is pretty slow (though it is faster than the <a href="https://jwdinius.github.io/blog/2020/point-match-cont/">quadratic assignment approach</a>.  Let’s try Algorithm 2.</p>
+
+<h3 id="mcq-algorithm-2">MCQ (Algorithm 2)</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">first_available</span><span class="p">(</span><span class="n">colors</span><span class="p">):</span>
+    <span class="s">"""Return smallest integer not in the given list of colors."""</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># Allocate long-enough array of zeros
+</span>    <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
+            <span class="n">count</span><span class="p">[</span><span class="n">color</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">count</span><span class="p">[</span><span class="n">color</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">color</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">greedy_color</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+    <span class="s">"""Find the greedy coloring of graph defined by edges in the given vertices.
+    """</span>
+    <span class="n">color</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vertices</span><span class="p">:</span>
+        <span class="n">color</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="n">first_available</span><span class="p">([</span><span class="n">color</span><span class="p">[</span><span class="n">w</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">color</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">color</span><span class="p">:</span>
+        <span class="n">color</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># make sure to start coloring from 1
+</span>    <span class="k">return</span> <span class="n">color</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcMCQ</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span>
+    <span class="s">"""
+    Algorithm 2 from paper "A Practical Maximal Clique for Matching with Pairwise Constraints" by
+    Bustos et.al
+    
+    args:
+    S - candidate vertices for expansion
+    edges - edges of (undirected) graph
+    f - coloring of vertices for expansion (len(f) == len(S), by necessity)
+    """</span>
+    <span class="c1"># reorder vertices in S by adjacency
+</span>    <span class="c1">#Ssrt = sorted(S, key=lambda x: len(adjacency(edges, x)), reverse=True)  # this does not work
+</span>    <span class="n">Ssrt</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">x</span><span class="p">)),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>  <span class="c1"># this works, want to expand about vertex of largest degree first
+</span>    <span class="c1">#Ssrt = S  # this also works
+</span>    <span class="k">while</span> <span class="n">Ssrt</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">Ssrt</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">Rbest</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">R</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">Sprime</span> <span class="o">=</span> <span class="p">[</span><span class="n">vert</span> <span class="k">for</span> <span class="n">vert</span> <span class="ow">in</span> <span class="n">Ssrt</span> <span class="k">if</span> <span class="n">vert</span> <span class="ow">in</span> <span class="n">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">v</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">Sprime</span><span class="p">:</span>
+            <span class="n">fprime</span> <span class="o">=</span> <span class="n">greedy_color</span><span class="p">(</span><span class="n">Sprime</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+            <span class="n">mcMCQ</span><span class="p">(</span><span class="n">Sprime</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">fprime</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">Rbest</span><span class="p">):</span>
+            <span class="n">Rbest</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
+        <span class="n">R</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">Ssrt</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
+<span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">greedy_color</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+<span class="c1">#print(f)
+</span><span class="n">mcMCQ</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Rbest is: {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">Rbest</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [5, 2, 4, 3]
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">k</span> <span class="ow">and</span> <span class="n">j</span> <span class="o">!=</span> <span class="n">l</span><span class="p">:</span>
+                    <span class="n">ci</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">i</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">j</span><span class="p">]}</span>
+                    <span class="n">cj</span> <span class="o">=</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">source_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">k</span><span class="p">],</span> <span class="s">"y"</span><span class="p">:</span> <span class="n">target_pts</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="n">l</span><span class="p">]}</span>
+                    <span class="n">consis</span> <span class="o">=</span> <span class="n">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">eps</span><span class="p">,</span> <span class="n">pwThresh</span> <span class="o">=</span> <span class="n">pwThr</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">consis</span><span class="p">:</span>
+                        <span class="n">V1</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">j</span>
+                        <span class="n">V2</span> <span class="o">=</span> <span class="n">k</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">l</span>
+                        <span class="n">E</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">V1</span><span class="p">,</span> <span class="n">V2</span><span class="p">))</span>
+                        <span class="k">if</span> <span class="n">V1</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">V2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
+                            <span class="n">V</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">V2</span><span class="p">)</span>
+<span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">greedy_color</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+<span class="n">tBegin</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">mcMCQ</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+<span class="n">timeElapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tBegin</span>
+<span class="n">maxCliqueMCQ</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">Rbest</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Max clique was found in {}sec"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Is the correspondence list equivalent to the mcMCQ maximum clique?  {}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxCliqueBasicBnB</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.07146430015563965sec
+Is the correspondence list equivalent to the mcMCQ maximum clique?  True
+</code></pre></div></div>
+
+<p>This algorithm is significantly faster than the basic BnB with the same result.  You should take care to analyze runtime performance for your particular <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>: <em>for smaller <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>, you should use the basic BnB</em>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The work described in this post was used as the basis for the <code class="language-plaintext highlighter-rouge">mc</code> algorithm in my project <a href="https://github.com/jwdinius/nmsac"><code class="language-plaintext highlighter-rouge">nmsac</code></a>.  The graph-based methods provide a faster, simpler way of identifying point-to-point correspondences between two point clouds.  I wanted to write up this post as a primer similar to the posts done for the <a href="https://jwdinius.github.io/blog/2020/point-match-sol/"><code class="language-plaintext highlighter-rouge">qap</code></a> algorithm, which solves the correspondence problem using optimization-based methods.  This is the last post relating to <code class="language-plaintext highlighter-rouge">nmsac</code> before the final project write-up, which should be completed in the next few weeks.</p>
+
+<p><em>Thanks for reading!</em></p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2021/max-clique';
+      var disqus_title      = "Finding Point Cloud Correspondences Using Undirected Graphs";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

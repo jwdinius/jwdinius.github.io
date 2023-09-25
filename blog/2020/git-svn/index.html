@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | How to Setup an Alternate CM Workflow when Constrained to Use Subversion</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2020/git-svn/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">How to Setup an Alternate CM Workflow when Constrained to Use Subversion</h1>
+    <p class="post-meta">March 14, 2020</p>
+  </header>
+
+  <article class="post-content">
+    <blockquote>
+  <p><em>Background: I recently started work at a company that uses</em> subversion <em>for configuration management.  It has been well over 5 years since I last used the tool, and I have no fond memories of it.  I wanted to find a workaround that would allow me to work with</em> git <em>locally and then commit changes to the remote server when I was satisfied that my changes and supporting tests were ready for review.  I’m not going to get in to centralized vs. decentralized CM strategies here; the purpose of this post is just to present the workflow I came across and how I verified that it works.</em></p>
+</blockquote>
+
+<p>All materials for reproducing the steps I discuss below can be downloaded from <a href="/assets/zip/git-svn-verified.zip">here</a>.</p>
+
+<h1 id="software-prerequisites">Software Prerequisites:</h1>
+<ul>
+  <li>Ubuntu 16.04/18.04 - <em>you can probably run with Windows 10 + Docker Desktop but I have not verified</em></li>
+  <li>a zip client - <em>to extract the archive</em></li>
+  <li>docker - <em>I run with –network=host option enabled!</em></li>
+  <li>git</li>
+  <li>git-svn</li>
+  <li>subversion</li>
+</ul>
+
+<p>In the shell snippets I show below, <code class="language-plaintext highlighter-rouge">host</code> means you should run your command on your host machine and <code class="language-plaintext highlighter-rouge">container</code> means you should run the command inside of the running docker container that hosts the running subversion server.</p>
+
+<h1 id="setting-up-the-mock-environment">Setting up the Mock Environment</h1>
+<h2 id="build-and-run-the-mock-server">Build and Run the Mock Server</h2>
+<p>Before getting into the workflow, I wanted to create a subversion server that would allow me to setup some dummy subverion repositories to play around with.  If you, the reader, have read some of my previous blog posts, you’d now that I am a big Docker advocate, so I found a repo that could serve as a starting point for setting up a subversion server with a Docker container.  <em>My apologies to the original author of the repo; I could not find the original repo that I cloned the Dockerfile and supporting files from before making my minor modifications.  If you know who the author is, let me know and I will attribute the original work to you.</em>  The basic steps for building an image from the Dockerfile, and launching a container based on that image, provided in the link above are:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span><span class="nb">cd</span> <span class="o">{</span>path-to-extracted-zip-contents<span class="o">}</span>
+<span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>./cd svn-test/svn-server
+<span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>./build-docker.sh <span class="o">{</span>username<span class="o">}</span> <span class="o">{</span>password<span class="o">}</span>  <span class="c"># provide desired username and password as command line args</span>
+<span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>./run-docker.sh 
+</code></pre></div></div>
+
+<h2 id="setting-up-the-mock-repositories">Setting Up the Mock Repositories</h2>
+<h3 id="server-side">Server-Side</h3>
+<p>Remember, I am approaching this post from the perspective of <em>my</em> particular problem: working with existing subversion repos.  So, to test candidate workflows, I need representative repositories.  We can create one or more such repositories by executing the three steps below:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>docker <span class="nb">exec</span> <span class="nt">-it</span> svn-server-c /bin/bash  <span class="c"># STEP 1: attach terminal to svn-server-c</span>
+<span class="o">(</span>container<span class="o">)</span><span class="nv">$ </span>svnadmin create /home/svn/<span class="o">{</span>project-name<span class="o">}</span>  <span class="c"># STEP 2: create new repo using svnadmin</span>
+<span class="o">(</span>container<span class="o">)</span><span class="nv">$ </span><span class="nb">chown</span> <span class="nt">-R</span> www-data:subversion /home/svn/<span class="o">{</span>project-name<span class="o">}</span> <span class="c"># STEP 3: change permissions so user={svn-username} can push/pull from svn server </span>
+<span class="o">(</span>container<span class="o">)</span><span class="nv">$ </span><span class="nb">chmod</span> <span class="nt">-R</span> g+rws /home/svn/<span class="o">{</span>project-name<span class="o">}</span>  <span class="c"># STEP 3: (continued)</span>
+</code></pre></div></div>
+
+<p>So far, only empty repositories have been created; they don’t even have the standard <code class="language-plaintext highlighter-rouge">branches/tags/trunk</code> layout common in subversion repos.</p>
+
+<h3 id="client-side">Client-Side</h3>
+<p>To create a repo with the standard <code class="language-plaintext highlighter-rouge">branches/tags/trunk</code> layout:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>svn co <span class="nt">--user</span> <span class="o">{</span>username<span class="o">}</span> http://localhost/svn/<span class="o">{</span>project-name<span class="o">}</span>  <span class="c"># STEP 1: checkout repo (you will be prompted for username's password)</span>
+<span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span><span class="nb">cd</span> <span class="o">{</span>project-name<span class="o">}</span> <span class="o">&amp;&amp;</span> <span class="nb">mkdir </span>branches tags trunk  <span class="c"># STEP 2: create branches tags trunks</span>
+<span class="o">(</span>host<span class="o">)</span><span class="nv">$ </span>svn add branches tags trunk <span class="o">&amp;&amp;</span> svn ci <span class="nt">-m</span> <span class="s2">"adding standard layout"</span>  <span class="c"># STEP 3: add and commit local changes to the server</span>
+</code></pre></div></div>
+
+<p>Should you desire, you can also checkout trunk, add files, and create branches using the normal subversion commands, like <code class="language-plaintext highlighter-rouge">checkout</code>, <code class="language-plaintext highlighter-rouge">checkin</code>, <code class="language-plaintext highlighter-rouge">copy</code>, etc…  I chose not to, but feel free to do so.  I just wanted the standard layout for integration with <code class="language-plaintext highlighter-rouge">git-svn</code>.</p>
+
+<h1 id="simplifying-cm-with-git-svn">Simplifying CM with <code class="language-plaintext highlighter-rouge">git-svn</code></h1>
+<p>We are now ready to move on to the real objective of this post: <em>working locally with subversion repositories</em> without <em>using subversion</em>!  What I am trying to achieve is the following:</p>
+
+<ul>
+  <li>I want bi-directional communication; e.g. push <em>and</em> pull capability between my local working copy and the remote subversion server</li>
+  <li>I want to be able to work locally with git to get all of its niceties:  <code class="language-plaintext highlighter-rouge">squash</code>, <code class="language-plaintext highlighter-rouge">rebase</code>, <code class="language-plaintext highlighter-rouge">cherry-pick</code>, etc…</li>
+  <li>The workflow should make it simple to keep my working copies up-to-date with the remote</li>
+</ul>
+
+<p>Since this is intended to be a how-to post at its core, I’m going to show what solutions I found for achieving the following with <code class="language-plaintext highlighter-rouge">git-svn</code> and <code class="language-plaintext highlighter-rouge">git</code> with the above criteria in mind.  Specifically, I will show how to do the following:</p>
+
+<ul>
+  <li>Clone an existing subversion repo</li>
+  <li>Create a branch globally with subversion <em>and</em> track it locally with git</li>
+  <li>Merge branches</li>
+  <li>Ignore files</li>
+</ul>
+
+<p><em>Note: all commands from now on are to be run on your host machine, not inside the container!</em></p>
+
+<h2 id="clone-existing-subversion-repo">Clone Existing Subversion Repo</h2>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd {desired-project-parent-dir}  # e.g. one level above where you want to clone the code to locally 
+$ git svn clone http://localhost/svn/{repo-name} {repo-name} -s  # the command is "git svn" NOT "git-svn"!
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">s</code> is for standard layout; e.g. branches/tags/trunk</p>
+
+<p>This sets up a git-like local repo to work with.  Quite handy!</p>
+
+<h2 id="create-and-track-a-branch">Create and Track a Branch</h2>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd {local-repo-root-dir}  # make sure that you clone the repo into {local-repo-root-dir} first!
+$ git svn branch -m "{your-branch-create-message-here}" {name-of-branch}  # create the branch on the remote server; complete with commit message
+$ #git branch -a  # list remote branches that git knows about.  THIS COMMAND IS VERY USEFUL
+$ git svn fetch  {name-of-branch}  # fetch newly-made branch.  Exclusion of {name-of-branch} fetches everything: all branches/tags/trunk, so use cautiously.  This step sets up {name-of-branch} as the remote branch for git to track
+$ git checkout -b {name-of-branch}-local remotes/origin/{name-of-branch}  # This step creates a local working branch.  Note: adding `-local` removes git warning about ambiguity.
+$ ... (do bunch of stuff locally, use git workflow to manage CM (squash/rebase/merge/etc...).
+$ git svn dcommit  # commits to branch, updates the revision count (only once)
+</code></pre></div></div>
+
+<h2 id="merge-branches">Merge branches</h2>
+<p>This includes merging from a branch into trunk. See this <a href="https://stackoverflow.com/questions/2835791/git-svn-reset-tracking-for-master">post</a>’s accepted answer.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ git checkout {to-branch}  # if you have not created a local copy, use the "-b" flag with checkout here
+$ git reset --hard {remote-to-to-branch}  # e.g. remotes/origin/trunk.  This sets up your local copy to match the remote AND to track the remote branch!
+$ git merge --no-ff  {remote-to-from-branch}  # merge from "from" remote.  The "--no-ff" option is important; see post answer, brings up editor with a default merge message
+$ git svn rebase {remote-to-to-branch}  # rebase is apparently required, but shouldn't change anything here
+$ git svn dcommit # commits to branch, updates the revision count (only once) 
+</code></pre></div></div>
+
+<h2 id="ignore-files">Ignore Files</h2>
+<p>For now, just add a <code class="language-plaintext highlighter-rouge">.gitignore</code> file before doing local git workflow stuff.  Do <code class="language-plaintext highlighter-rouge">git svn dcommit</code> after satisfied with local git changes.  Things you want to ignore won’t be committed to git and not committed to subversion either.</p>
+
+<p>There’s probably a more elegant solution, but this meets my need.</p>
+
+<h1 id="wrap-up">Wrap-Up</h1>
+<p>Hopefully, I’ve presented you with some new information that, should you choose, will empower you to confidently use git with legacy subversion repos!  If you think of anything that could be modified or added to improve this post, I am receptive; let me know what you think in the comments.  In conclusion, here are some links I distilled into aspects of this post:</p>
+
+<ul>
+  <li><a href="https://git-scm.com/docs/git-svn/1.5.5">git-svn from git docs</a></li>
+  <li><a href="http://trac.parrot.org/parrot/wiki/git-svn-tutorial">sample tutorial</a></li>
+  <li><a href="https://objectpartners.com/2014/02/04/getting-started-with-git-svn/">getting started with git-svn</a></li>
+  <li><a href="https://kapeli.com/cheat_sheets/Git_Subversion.docset/Contents/Resources/Documents/index">git-svn cheatsheet</a></li>
+  <li><a href="https://mojodna.net/2009/02/24/my-work-git-workflow.html">sample workflow</a></li>
+</ul>
+
+<p>Hopefully, some of you out there will find this useful.  Thanks for reading!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2020/git-svn';
+      var disqus_title      = "How to Setup an Alternate CM Workflow when Constrained to Use Subversion";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

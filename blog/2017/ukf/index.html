@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Unscented Kalman Filters</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2017/ukf/">
+  
+    <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: {
+        autoNumber: "all"
+      }
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ['\(', '\)'] ],
+      displayMath: [ ['$$','$$'] ],
+      processEscapes: true,
+    }
+  });
+</script>
+<!<script type="text/javascript"
+src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">>
+<script type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+</script>
+
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Unscented Kalman Filters</h1>
+    <p class="post-meta">November 7, 2017</p>
+  </header>
+
+  <article class="post-content">
+    <h1 id="sample-estimation-problem">Sample Estimation Problem</h1>
+<p>A coworker approached me sometime back asking me to address a state estimation problem he was having.  So, I whipped up this notebook in my free time to address the problem.  By ‘tag’, I mean <a href="https://april.eecs.umich.edu/wiki/AprilTags">AprilTags</a>, the set of markers for fiducial landmarking.</p>
+
+<h1 id="preamble">Preamble</h1>
+<p>You are able to measure the distance to the tag, but you are uncertain of the rotation angle and of the minimum distance to the tag, which occurs when the camera is aligned with the tag.</p>
+
+<p>First, a few definitions will help</p>
+
+\[\mathbf{x} = \begin{pmatrix} 
+\beta \\
+\psi 
+\end{pmatrix}\]
+
+<p>$\mathbf{x}$ is the state vector we want to estimate; $\beta$ is the minimum distance to the tag and $\psi$ is the angle of robot rotation relative to the tag.</p>
+
+<p>The general form of the problem I am considering is the estimation problem:</p>
+
+\[\dot{\mathbf{x}} = \mathbf{f}(\mathbf{x}) + \mathbf{g}(\mathbf{u}) + \mathbf{v} \\
+\mathbf{z} = \mathbf{h}(\mathbf{x}) + \mathbf{w},\]
+
+<p>where $\mathbf{u}$ is the control vector.  In this case, I assume we are able to command velocity and $\dot{\psi}$.  The variables $\mathbf{v},\mathbf{w}$ are process and measurement noise vectors, respectively.</p>
+
+<p>I don’t know much about the intricacies of the problem, so I’ll assume that the system is as simple as possible; that is, the robot is not moving and is spinning at a constant rate.  The measurement is the distance of a fixed-body camera to the tag.  I drop the <strong>bold</strong> font since our measurement is only one-dimensional:</p>
+
+\[h(\mathbf{x}) = \sqrt{(\beta+r)^2 + 1 - 2(\beta+r)r \cos\psi},\]
+
+<p>where $r$ is the robot’s radius.</p>
+
+<h1 id="implementation-in-python">Implementation in Python</h1>
+
+<p>I really hate having to compute Jacobians, so I decided to use an unscented Kalman filter here to avoid such nonsense.  There’s a nice implementation in Python called <em>filterpy</em> that I was able to install and run really quickly.  Here’s the solution:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">from</span> <span class="nn">filterpy.kalman</span> <span class="kn">import</span> <span class="n">UnscentedKalmanFilter</span>
+<span class="kn">from</span> <span class="nn">filterpy.kalman</span> <span class="kn">import</span> <span class="n">JulierSigmaPoints</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+</code></pre></div></div>
+
+<p>First, define the ground truth:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">beta</span>      <span class="o">=</span> <span class="mf">1.</span><span class="p">;</span>
+<span class="n">psi_start</span> <span class="o">=</span>  <span class="n">np</span><span class="p">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.</span>
+<span class="n">psi_end</span>   <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="p">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.</span>
+<span class="n">psi_rate</span>  <span class="o">=</span> <span class="o">-</span><span class="mf">0.2</span>
+<span class="n">psi</span>       <span class="o">=</span> <span class="n">psi_start</span>
+<span class="n">dt</span>        <span class="o">=</span> <span class="p">.</span><span class="mi">01</span>
+<span class="n">r</span>         <span class="o">=</span> <span class="p">.</span><span class="mi">4</span>
+</code></pre></div></div>
+
+<p>Define the functions needed to do the prediction and measurement updates:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">dt</span><span class="p">,</span><span class="n">psi_rate</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">psi_rate</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+<span class="k">def</span> <span class="nf">hx</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="mf">0.4</span><span class="p">):</span>
+    <span class="n">bpr</span>  <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="n">r</span>
+    <span class="n">bpr2</span> <span class="o">=</span> <span class="n">bpr</span> <span class="o">*</span> <span class="n">bpr</span>
+    <span class="k">return</span> <span class="n">np</span><span class="p">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">bpr2</span> <span class="o">+</span> <span class="mf">1.</span> <span class="o">-</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">bpr</span> <span class="o">*</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="n">cos</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+</code></pre></div></div>
+
+<p>Initialize the UKF:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dim_x</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">dim_z</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">points</span> <span class="o">=</span> <span class="n">JulierSigmaPoints</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">kappa</span><span class="o">=</span><span class="mf">3.</span><span class="o">-</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">sqrt_method</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">cholesky</span><span class="p">)</span>
+
+<span class="n">ukf</span> <span class="o">=</span> <span class="n">UnscentedKalmanFilter</span><span class="p">(</span><span class="n">dim_x</span><span class="o">=</span><span class="n">dim_x</span><span class="p">,</span> <span class="n">dim_z</span><span class="o">=</span><span class="n">dim_z</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="n">dt</span><span class="p">,</span> <span class="n">fx</span><span class="o">=</span><span class="n">fx</span><span class="p">,</span> <span class="n">hx</span><span class="o">=</span><span class="n">hx</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">sqrt_fn</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">cholesky</span><span class="p">)</span>
+<span class="s">"""
+ initialize state and covariance
+"""</span>
+<span class="n">beta_worst</span> <span class="o">=</span> <span class="p">.</span><span class="mi">9</span>
+<span class="n">psi_worst</span> <span class="o">=</span> <span class="p">.</span><span class="mi">9</span>
+<span class="n">ukf</span><span class="p">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">beta_worst</span><span class="p">,</span><span class="n">psi_worst</span><span class="p">])</span>
+<span class="c1"># you will probably want to change the noise terms to something more appropriate
+</span><span class="n">beta_1sig</span> <span class="o">=</span> <span class="p">.</span><span class="mi">02</span> <span class="c1"># 2 cm
+</span><span class="n">psi_1sig</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">180.</span> <span class="c1"># 1 deg
+</span><span class="n">ukf</span><span class="p">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">ukf</span><span class="p">.</span><span class="n">Q</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">beta_1sig</span> <span class="o">*</span> <span class="n">beta_1sig</span>
+<span class="n">ukf</span><span class="p">.</span><span class="n">Q</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">psi_1sig</span> <span class="o">*</span> <span class="n">psi_1sig</span>
+<span class="n">ukf</span><span class="p">.</span><span class="n">P</span> <span class="o">=</span> <span class="mi">1000</span><span class="o">*</span><span class="n">ukf</span><span class="p">.</span><span class="n">Q</span> <span class="c1"># set to something arbitrarily large to monitor filter convergence
+</span><span class="n">d_1sig</span> <span class="o">=</span> <span class="p">.</span><span class="mi">02</span>
+<span class="n">ukf</span><span class="p">.</span><span class="n">R</span> <span class="o">=</span> <span class="n">d_1sig</span> <span class="o">*</span> <span class="n">d_1sig</span>
+</code></pre></div></div>
+
+<p>Now, actually run the simulation:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># create containers for plotting (initialized to initial condition)
+</span><span class="n">x_t</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">d</span>   <span class="o">=</span> <span class="p">[]</span>
+<span class="n">d_p</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">d_t</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">x_e</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">P_e</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">while</span> <span class="n">psi</span> <span class="o">&gt;</span> <span class="o">-</span><span class="n">np</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">4</span><span class="p">:</span>
+    <span class="c1"># get truth
+</span>    <span class="n">psi</span> <span class="o">+=</span> <span class="n">psi_rate</span> <span class="o">*</span> <span class="n">dt</span>
+    <span class="n">x_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">beta</span><span class="p">,</span><span class="n">psi</span><span class="p">]</span>
+    <span class="n">x_t</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">x_c</span><span class="p">)</span>
+    
+    <span class="c1"># predict
+</span>    <span class="n">ukf</span><span class="p">.</span><span class="n">predict</span><span class="p">(</span><span class="n">fx_args</span><span class="o">=</span><span class="n">psi_rate</span><span class="p">)</span>
+
+    <span class="c1"># get measurement
+</span>    <span class="n">d_c</span> <span class="o">=</span> <span class="n">hx</span><span class="p">(</span><span class="n">x_c</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">d_t</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_c</span><span class="p">)</span>
+    <span class="n">d_m</span> <span class="o">=</span> <span class="n">d_c</span> <span class="o">+</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span><span class="n">d_1sig</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">d_p</span><span class="p">.</span><span class="n">append</span><span class="p">(</span> <span class="n">hx</span><span class="p">(</span><span class="n">ukf</span><span class="p">.</span><span class="n">x</span><span class="p">,</span><span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">)</span> <span class="p">)</span>
+    <span class="n">d</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_m</span><span class="p">)</span>
+
+    <span class="c1"># update kalman filter
+</span>    <span class="n">ukf</span><span class="p">.</span><span class="n">update</span><span class="p">(</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">d_m</span><span class="p">),</span><span class="n">hx_args</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="c1"># store states
+</span>    <span class="n">x_e</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">ukf</span><span class="p">.</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">ukf</span><span class="p">.</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="n">P_e</span><span class="p">.</span><span class="n">append</span><span class="p">([</span><span class="n">ukf</span><span class="p">.</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="n">ukf</span><span class="p">.</span><span class="n">P</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]])</span>
+</code></pre></div></div>
+
+<p>Now, plot the output:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># create numpy containers for plotting
+</span><span class="n">xnp_t</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_t</span><span class="p">).</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_t</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">xnp_e</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_e</span><span class="p">).</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_e</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">Pnp_e</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">P_e</span><span class="p">).</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">P_e</span><span class="p">),</span><span class="mi">2</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xnp_t</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="s">'g'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"truth"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xnp_e</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="s">'b--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"estimate"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">'best'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"beta vs. beta est"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"beta"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylim</span><span class="p">((</span><span class="mf">0.75</span><span class="p">,</span><span class="mf">1.25</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="p">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xnp_t</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="s">'g'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xnp_e</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="s">'b--'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"psi vs. psi est"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"psi"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylim</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">3.</span><span class="p">,</span><span class="n">np</span><span class="p">.</span><span class="n">pi</span><span class="o">/</span><span class="mf">3.</span><span class="p">))</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/output_13_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># now do the distance
+</span><span class="n">dnp_t</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">d_t</span><span class="p">)</span>
+<span class="n">dnp_m</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="n">dnp_e</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">(</span><span class="n">d_p</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dnp_t</span><span class="p">,</span><span class="s">'g'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"truth"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dnp_m</span><span class="p">,</span><span class="s">'ro'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"measurement"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dnp_e</span><span class="p">,</span><span class="s">'b--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">"estimate"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">'best'</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">title</span><span class="p">(</span><span class="s">"distance comparison"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">"d"</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">ylim</span><span class="p">((.</span><span class="mi">9</span><span class="p">,</span><span class="mf">1.5</span><span class="p">))</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/output_14_0.png" alt="png" /></p>
+
+<h1 id="comments">Comments</h1>
+
+<ul>
+  <li>The estimate is still pretty noisy, indicating an improper tuning of process noise</li>
+</ul>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2017/ukf';
+      var disqus_title      = "Unscented Kalman Filters";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

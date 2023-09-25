@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Self-Driving Car Nanodegree Summary</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2018/udacity_sdcnd/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Self-Driving Car Nanodegree Summary</h1>
+    <p class="post-meta">February 4, 2018</p>
+  </header>
+
+  <article class="post-content">
+    <p align="center"> 
+<img src="/assets/img/nd013.png" />
+</p>
+
+<h3 id="summary">Summary</h3>
+
+<p>I recommend this program for aspiring early- to mid-career engineers interested in self-driving vehicle technology.  Some things to keep in mind about the program:</p>
+
+<ul>
+  <li>Reasonable time to complete: about 9 months</li>
+  <li>High value, High cost</li>
+  <li>The first term was much more rigorous than the subsequent two</li>
+  <li>Entire technology stack, from high-level planning to low-level controls, was covered in adequate depth</li>
+  <li>Knowledge checks in between concepts via quizzes were very useful</li>
+  <li>Some inconsistency in application across terms: multiple partners seemed to have led to multiple lecture/quiz formats</li>
+  <li>Culminated in programming Carla, Udacity’s self-driving car</li>
+</ul>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>I had been working for Ford’s autonomous vehicles unit for a about a year when Udacity launched the Self-Driving Car Nanodegree, now rebranded as the <em>Self-Driving Car Engineer Nanodegree</em>.  I was on the object detection and tracking team which, admittedly, I did not find as fascinating as the other technology areas adjacent; these included path planning, motion controls, and computer vision.  I wanted to learn more about these other topics so that, one day, I could move to another group doing work within Ford in one or more of these areas.</p>
+
+<p>Udacity has the deserved reputation of being more expensive than competitors when comparing similar offerings.  I took this into account before considering enrolling in the program.  The nanodegree was broken out into 3 terms, each costing a whopping $800.  Wow…  $2400 for an <em>unaccredited</em> online education credential?!  To Udacity’s credit: this program has no competition among the other big MOOC platforms; Coursera and edX have nothing comparable.  The affiliation with industry partners like Nvidia and Mercedes-Benz made this program very appealing.  I ultimately decided to commit the time and capital resources to the program and I estimated that each term would take about 3 months to complete.</p>
+
+<p>I enrolled in the second-ever cohort, experienced some of the growing pains of early adoption, and had a blast working through the material.  I will go through each term, presenting some interesting results and my opinions along the way.</p>
+
+<h3 id="term-1">Term 1:</h3>
+
+<p>The first term was dedicated to computer vision, a field in which I was quite inexperienced.  I had some experience throughout the years working with imaging, e.g. IR cameras, and non-imaging, e.g. radar, sensors, however I had not done much work with image processing.  I was really looking forward to this term because it gave me a chance to learn methods of image processing, like convolutional neural networks and gradient-based methods, and apply them to real-world problems encountered in self-driving cars.</p>
+
+<p>The video below shows the output of the project where I used OpenCV filtering and processing methods to do lane finding on a video stream captured from a moving car:</p>
+
+<p><a href="https://www.youtube.com/watch?v=EHplRv18Brw" target="_blank"><img src="https://img.youtube.com/vi/EHplRv18Brw/0.jpg" alt="lane_finding" /></a></p>
+
+<p>I hadn’t thought about it before, but image processing could be used to develop steering commands for a car!  Using a convolutional neural net architecture, I was able to train a model to steer a simulated car around a test track.  I trained the model by driving the car around the test track many different times and many different ways: counterclockwise, clockwise, weaving about the track, etc…  The data captured provided the neural net with the appropriate steering commands given a picture of the world at any given time.  This was super cool.  Check out the video below:</p>
+
+<p><a href="https://www.youtube.com/watch?v=DxcIq6H5sWk" target="_blank"><img src="https://img.youtube.com/vi/DxcIq6H5sWk/0.jpg" alt="cnn_steering" /></a></p>
+
+<p>This term, aside from the the really cool projects, had a high-level of academic rigor.  The project output was only a part of the criteria for successful completion.  The other part, which really impressed me, was a detailed analysis of the methods used in the context of the problem.  I think that it is important to do complete analyses when learning new material.  Otherwise, with emphases placed only on production, engineers are turned into technicians capable of nothing more than reiteration of previous results.</p>
+
+<p>In this term, I completed projects that classified traffic signs from a database of images, detected vehicles in a video stream, drove a simulated car around a test track, and identified lanes from a video stream in real-time.  Below, you’ll see the output of the vehicle detection project:</p>
+
+<p><a href="https://www.youtube.com/watch?v=VysM74ktGTE" target="_blank"><img src="https://img.youtube.com/vi/VysM74ktGTE/0.jpg" alt="detection" /></a></p>
+
+<p>I liked the vehicle detection project so much that I <a href="https://github.com/jwdinius/CarND-Term1/blob/master/CarND-Vehicle-Detection/pipeline.pdf">extended it with a tracker</a> to smooth out the observed measurement transients.  I used this project for a few job interview presentations with favorable feedback.</p>
+
+<p>This term was awesome!  In a period of only a few months, I completed five projects, each relevant to real-world perception problems in self-driving cars and, most importantly, using real data.</p>
+
+<h3 id="term-2">Term 2:</h3>
+
+<p>Term 1 set the bar very high, so I was really looking forward to Term 2.  The scope of this term was image processing and control; with emphases placed on tracking, localization, and control.  The first few projects didn’t seem that interesting to me; they were concerned with Kalman filters, and I had had much experience with implementing and tuning these in practice.  Even with my experience with Kalman filtering, I still found some useful tips and tricks.  Below, you’ll find the link to the unscented Kalman filter project results:</p>
+
+<p><a href="https://www.youtube.com/watch?v=rQWKwz2ewJM" target="_blank"><img src="https://img.youtube.com/vi/rQWKwz2ewJM/0.jpg" alt="ukf" /></a></p>
+
+<p>One departure from the first term I observed quickly: this term’s projects did not require the same level of effort as those of the first.  Granted, the projects were done in C++, as opposed to Python, and there isn’t an integrated platform for code and analysis like Jupyter notebooks.  I was a little disappointed that there was no longer an analytical component to the projects.</p>
+
+<p>There really were some interesting projects here.  My favorite was, perhaps, the particle filter landmark-based localization project:</p>
+
+<p><a href="https://www.youtube.com/watch?v=HBIvq_eb5rE" target="_blank"><img src="https://img.youtube.com/vi/HBIvq_eb5rE/0.jpg" alt="particle" /></a></p>
+
+<p>The term ended with a comparison of PID and model-predictive control methods for error-correction and stability.  You can see the MPC results in the video below:</p>
+
+<p><a href="https://www.youtube.com/watch?v=63_C3s6U8AU" target="_blank"><img src="https://img.youtube.com/vi/63_C3s6U8AU/0.jpg" alt="mpc" /></a></p>
+
+<p>Although much of the material was not new to me, I found some interesting aspects that I had overlooked previously.  The simulation platform for testing algorithms was very good and allowed for rapid algorithm development and testing.  I would have liked there to have been more of a written component for each project.  Performing rigorous post-mortem analyses of projects helps to cement difficult concepts for me.</p>
+
+<h3 id="term-3">Term 3</h3>
+
+<p>The third term was a culmination of the previous two.  Techniques presented previously were further explored in greater depth.  The first project was a high-level path planner that fused sensor data with vehicle telemetry to move about in traffic:</p>
+
+<p><a href="https://www.youtube.com/watch?v=AILA8kxl56Y" target="_blank"><img src="https://img.youtube.com/vi/AILA8kxl56Y/0.jpg" alt="path_planning" /></a></p>
+
+<p>The second project was interesting; there was a choice between two options.  I chose the option for advanced deep learning applied to semantic segmentation of camera images.  Semantic segmentation means a pixel-by-pixel classification of content within images by training a convolutional neural network to identify which pixels belong to certain objects.  The project had only two objects: roads and non-roads, but the work could be  extended by adding more classes.  The image below shows a sample segmented image, with the road pixels highlighted in green:</p>
+
+<p align="center"> 
+<img src="/assets/img/um_000019.png" />
+</p>
+
+<p>The final project was incredible.  We got to organize teams and write code that ran on Carla, Udacity’s self-driving car.  I wrote up a more in-depth <a href="/projects/carla/">project report</a> for those interested.  This experience was very rewarding, and also very challenging.</p>
+
+<p>I go more in-depth in the project page, so I’ll only mention a point here.  There was an apparent disconnect between the simulator used to verify the ROS code before running on Carla and the actual car, itself.  Twice, I pushed submissions that worked well in simulation only to have subpar results from running the code on the car.  Two weeks, or more, between submission and results being made available made debugging issues on Carla very difficult.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>The problems I encountered throughout all three terms were not academic; they were <em>real</em> industry problems along with a discussion of how industry approaches them.  I believe that Udacity’s approach is unique among other platforms is this regard; neither edX nor Coursera have much regard for industry in their courses or specializations.  While the cost was relatively high, the return on investment was much more tangible.  I learned a lot in a relatively short period of time, and the knowledge was directly applicable to robotics, in general, and self-driving cars, in particular.</p>
+
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2018/udacity_sdcnd';
+      var disqus_title      = "Self-Driving Car Nanodegree Summary";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

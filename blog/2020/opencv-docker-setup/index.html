@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Building a Docker image with OpenCV</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2020/opencv-docker-setup/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger">
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewbox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"></path>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"></path>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"></path>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Building a Docker image with OpenCV</h1>
+    <p class="post-meta">September 13, 2020</p>
+  </header>
+
+  <article class="post-content">
+    <p><img src="/assets/img/facial_landmark_det.gif" alt="Imgur">
+<em>Sample demonstration showing the development environment discussed below in action:  A facial landmark detector is shown attempting to keep up with my face while I move it around and change orientation.  The noisy red dots show the detector with no smoothing while the blue dots show the results of applying optical flow to smooth out the noise.</em></p>
+
+<h3 id="background">Background</h3>
+
+<p>Earlier this year, I completed the first in a <a href="https://www.kickstarter.com/projects/satyamallick/ai-courses-by-opencvorg">series AI courses from OpenCV</a>.  Most of the course assignments were completed using Jupyter notebooks; all other assignments, including projects, were completed on my host machine.  I was given the following two options for satisfying all of the dependencies for completing the course assignments on my host machine:</p>
+
+<ul>
+  <li>Install OpenCV and its dependencies natively on my machine</li>
+  <li>Pull a <a href="https://hub.docker.com/r/vishwesh5/opencv/tags">Docker image</a> from dockerhub</li>
+</ul>
+
+<p>The first option was not desirable for several reasons; not least of which is the potential for conflict with other versions of dependencies already installed on my machine.  Option 2 was significantly better, and I have used Docker a lot over the last year-and-a-half, so this was the option I chose.  Completion of all of the non-notebook assignments went well; primarily because all input data was read from a file.</p>
+
+<p>I recently enrolled in the second course in the series, which is focused on applications, and I wanted to see if I could create an environment - built with Docker, of course - that would be optimal for my hardware configuration: 
+<em>workstation with a single 6-core CPU and a GTX-1080i Ti Founder’s Edition graphics card, running Ubuntu 18.04 as the OS and a Logitech C270 USB Webcam.</em></p>
+
+<h3 id="setting-up-docker">Setting up Docker</h3>
+
+<p>The first desirable optimization would be to get GPU acceleration for OpenCV inside of my container instances.  My environment was already setup for this, but I’ll mention briefly here the steps I followed</p>
+
+<ul>
+  <li><a href="https://linuxconfig.org/how-to-install-the-nvidia-drivers-on-ubuntu-18-04-bionic-beaver-linux">Install Nvidia driver (&gt; 430)</a></li>
+  <li>
+<a href="https://docs.docker.com/engine/install/">Install Docker</a>.  <em>I also followed the</em> <a href="https://docs.docker.com/engine/install/linux-postinstall/">Post-installation steps for Linux</a><em>.</em>
+</li>
+  <li><a href="https://iamhow.com/How_To/Docker_How_To.html">Setup X-forwarding for GUI apps</a></li>
+  <li><a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker">Install Nvidia runtime</a></li>
+  <li>Enable Nvidia runtime by default: add the following line to <code class="language-plaintext highlighter-rouge">/etc/docker/daemon.json</code> file
+    <div class="language-bash highlighter-rouge">
+<div class="highlight"><pre class="highlight"><code><span class="s2">"default-runtime"</span>: <span class="s2">"nvidia"</span>
+</code></pre></div>    </div>
+    <p><em>make sure the resulting</em> <code class="language-plaintext highlighter-rouge">daemon.json</code> <em>file is valid json, otherwise docker will fail upon attempting to restart!</em></p>
+  </li>
+</ul>
+
+<p>Now, most of the infrastructure is in place for building our image.  After identifying that dependencies for OpenCV - and OpenCV, itself - would result in intermediate containers that exceed the default Docker base device size while building my image, I followed <a href="https://www.projectatomic.io/blog/2016/03/daemon_option_basedevicesize/">this guidance</a> for increasing the base device size.  <em>In practice, I found that a base device size of 30GB was sufficient for building the desired image.</em></p>
+
+<h3 id="building-the-docker-image">Building the Docker Image</h3>
+
+<p>I start from a base image from <a href="https://hub.docker.com/r/nvidia/cudagl/">here</a>.  The CUDA runtime library, OpenGL implementation, and other dependencies are enabled immediately, which makes setting up the remainder of the image easier.  <a href="https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html">CuDNN</a> is not present, but is desirable for neural network inference.  Before attempting to build the Docker image, download the CuDNN runtime and dev libraries - as debian packages - from the Nvidia developer site following <a href="https://docs.nvidia.com/deeplearning/cudnn/archives/cudnn_751/cudnn-install/index.html#download">these steps</a> and move/copy them into the same folder as the <a href="/assets/txt/Dockerfile">Dockerfile</a>.  Now, you are setup to build the docker image:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> <span class="o">{</span>dir-with-Dockerfile<span class="o">}</span>
+docker build <span class="o">{</span><span class="nt">--network</span><span class="o">=</span>host<span class="o">}</span> <span class="nt">-t</span> <span class="o">{</span>name-of-image<span class="o">}</span> <span class="nb">.</span>
+</code></pre></div></div>
+<p><em>The</em> <code class="language-plaintext highlighter-rouge">--network=host</code> <em>option allows using the host machine’s network interfaces directly. I usually disable the Docker bridge network and just use host networking for all of my containers.</em></p>
+
+<p>This will take awhile to build…</p>
+
+<p>In the meantime, you can consider the following things about the Docker image being built:</p>
+
+<ul>
+  <li>Steps discussed <a href="https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/">here</a> were used as the basis for building OpenCV, with two exceptions:
+    <ul>
+      <li>CUDA acceleration flags are enabled for this environment</li>
+      <li>No Python virtualenv is setup - <em>the Docker environment is already sufficiently isolated.</em>
+</li>
+    </ul>
+  </li>
+  <li>A user with passwordless login and sudo privileges is created.  This allows for easily attaching additional terminals to a running container instance as well as adding desirable additional packages not included in the original image build.</li>
+  <li>A user-defined entrypoint script</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+<span class="nb">set</span> <span class="nt">-e</span>
+
+<span class="c"># start jackd server to avoid webcam crash with guvcview</span>
+jackd <span class="nt">-d</span> dummy &amp;
+<span class="nb">exec</span> <span class="s2">"</span><span class="nv">$@</span><span class="s2">"</span>
+</code></pre></div></div>
+<p>is included to enable webcam streaming within the container <em>after correctly setting up the host environment</em>.</p>
+
+<h3 id="the-host-environment">The Host Environment</h3>
+
+<p>After digging into an issue with my webcam not properly streaming, it seemed I had a <a href="https://askubuntu.com/questions/457983/how-can-i-get-my-webcam-to-work-with-ubuntu-14-04">permissions issue</a> on <code class="language-plaintext highlighter-rouge">/dev/video*</code> in my host machine.  This was easy enough to fix with a udev rule executed at startup:</p>
+
+<ul>
+  <li>Create a file <code class="language-plaintext highlighter-rouge">/etc/udev/rules.d/99-webcam-rules</code>
+</li>
+  <li>Add the following line to the file:  <code class="language-plaintext highlighter-rouge">KERNEL=="video[0-9]*",MODE="0666"</code>  <em>assuming your webcam is discovered as /dev/video[0-9]</em>
+</li>
+  <li>Restart the host machine</li>
+</ul>
+
+<p>Non-root users -including our newly created Docker user - will have read-write access to the webcam now.  Everything should now be in place to run and test the container.</p>
+
+<h3 id="launching-a-container-instance">Launching a Container Instance</h3>
+
+<p>We want our container to be able to do the following:</p>
+
+<ul>
+  <li>Display GUI windows - from a webcam streaming app like <code class="language-plaintext highlighter-rouge">guvcview</code> or from OpenCV-based applications</li>
+  <li>Ability to read from the webcam</li>
+  <li>Enable non-volatile storage for intermediate work products - e.g. source code under development</li>
+</ul>
+
+<p>We can achieve all of these goals with the following run command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">--rm</span> <span class="nt">-it</span> <span class="se">\</span>
+    <span class="nt">--name</span> opencv-course-c <span class="se">\</span>
+    <span class="nt">--net</span> host <span class="se">\</span>
+    <span class="nt">--privileged</span> <span class="se">\</span>
+    <span class="nt">--ipc</span> host <span class="se">\</span>
+    <span class="nt">--device</span> /dev/video0 <span class="se">\</span>
+    <span class="nt">--device</span> /dev/video1 <span class="se">\</span>
+    <span class="nt">-v</span> /tmp/.X11-unix:/tmp/.X11-unix <span class="se">\</span>
+    <span class="nt">-v</span> <span class="si">$(</span><span class="nb">pwd</span><span class="si">)</span>/course-materials:/home/opencv/course-materials <span class="se">\</span>
+    <span class="nt">-e</span> <span class="nv">DISPLAY</span><span class="o">=</span><span class="nv">$DISPLAY</span> <span class="se">\</span>
+    opencv-nvidia <span class="se">\</span>
+    /bin/bash
+
+</code></pre></div></div>
+
+<p>This command, option-by-option, does the following:</p>
+
+<ul>
+  <li>Tells the Docker runtime to cleanup the container environment when the user triggers exit - <code class="language-plaintext highlighter-rouge">--rm</code>
+</li>
+  <li>Creates an interactive container - <code class="language-plaintext highlighter-rouge">-it</code>
+</li>
+  <li>Gives the container instance the name <code class="language-plaintext highlighter-rouge">opencv-course-c</code>
+</li>
+  <li>Uses host networking - <code class="language-plaintext highlighter-rouge">--net host</code>
+</li>
+  <li>Gives the container privileged access - <em>required for x11 forwarding, apparently</em>
+</li>
+  <li>Uses host shared memory for interprocess communication - <code class="language-plaintext highlighter-rouge">--ipc host</code>
+</li>
+  <li>Gives access to <code class="language-plaintext highlighter-rouge">/dev/video*</code> devices</li>
+  <li>Sets up X11 forwarding from host</li>
+  <li>Mounts <code class="language-plaintext highlighter-rouge">./course-materials</code> folder as read-write volume inside of container at <code class="language-plaintext highlighter-rouge">/home/opencv/course-materials</code>.  <em>This is the non-volatile storage</em>
+</li>
+  <li>Uses host display</li>
+  <li>Uses <code class="language-plaintext highlighter-rouge">opencv-nvidia</code> image as container base</li>
+  <li>Launches a bash shell for the user to interact with</li>
+</ul>
+
+<p>Now, you should be ready to experiment with this; add sample OpenCV source code, compile and run it, and see what happens.  The gif of facial landmark tracking I share at the beginning of this blog post was generated using this environment, so I’m pretty confident it’ll work.  I would share the facial landmark tracking app, but the code comes from the second OpenCV course, which is behind a paywall <img class="emoji" title=":disappointed:" alt=":disappointed:" src="https://github.githubassets.com/images/icons/emoji/unicode/1f61e.png" height="20" width="20"></p>
+
+<p>I’ve only just begun to use this environment, and I’m really looking forward to pushing further and doing more with it.  I hope you’ll find this post and materials referenced useful in your own learning journey.</p>
+
+<p>Thanks for reading!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2020/opencv-docker-setup';
+      var disqus_title      = "Building a Docker image with OpenCV";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    © Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

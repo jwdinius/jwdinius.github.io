@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Traffic Sign Classification</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/projects/german-traffic-signs-project/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Traffic Sign Classification</h1>
+    <h5 class="post-description">SOTA Classification with PyTorch/fastai</h5>
+  </header>
+
+  <article class="post-content Traffic Sign Classification clearfix">
+    <h1 id="german-traffic-sign-recognition-classification-challenge">German Traffic Sign Recognition Classification Challenge</h1>
+
+<h2 id="abstract">Abstract</h2>
+
+<p>The <a href="https://docs.fast.ai/">fastai library</a> is used to achieve world-class classification accuracy on the <a href="http://benchmark.ini.rub.de/?section=gtsrb&amp;subsection=news">German Traffic Sign Recognition Benchmark dataset</a>.  A little less than eight years ago, there was a competition held during the International Joint Conference on Neural Networks 2011 to achieve the highest accuracy on the aforementioned dataset.  The competition winner achieved 99.46% accuracy on a holdout set using a multi-CNN approach.  In this work, I will show how to beat this impressive accuracy using the then-unavailable fastai library.</p>
+
+<h2 id="preamble">Preamble</h2>
+
+<h3 id="steps-to-recreate-this-environment">Steps to Recreate this Environment</h3>
+
+<p>I ran this notebook inside of a docker container that I built and ran using <a href="https://github.com/jwdinius/fastai-docker">this</a>.  I chose this approach because <em>(i)_I didn’t want to use a GCP or AWS EC2 instance, _(ii)</em> I have a 1080Ti graphics card on my workstation at home, and <em>(iii)</em> I didn’t want to pollute my whole workstation’s build system by installing such hyper-specialized software as fastai/pytorch.  <em>Note:  I don’t believe you will be able to achieve the training times quoted here without at-minimum a 1080Ti card but you are welcome to try!</em></p>
+
+<h3 id="load-dependencies">Load Dependencies</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">%</span><span class="n">reload_ext</span> <span class="n">autoreload</span>
+<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">fastai.vision</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">fastai.metrics</span> <span class="kn">import</span> <span class="n">error_rate</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bs</span> <span class="o">=</span> <span class="mi">64</span>
+</code></pre></div></div>
+
+<h2 id="process-the-data">Process the Data</h2>
+
+<h3 id="get-the-data">Get the Data</h3>
+
+<p>As part of <a href="https://www.udacity.com/course/self-driving-car-engineer-nanodegree--nd013">Udacity’s Self-Driving Car Nanodegree</a>, students are asked to perform inference on this same dataset and, thankfully, a user provided a handy pickle file with train, validation, and test datasets.  Let’s grab it with the cell below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">joe</span><span class="o">/</span><span class="n">nbs</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gtsdb</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">d17h27t6h515a5</span><span class="p">.</span><span class="n">cloudfront</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">topher</span><span class="o">/</span><span class="mi">2017</span><span class="o">/</span><span class="n">February</span><span class="o">/</span><span class="mi">5898</span><span class="n">cd6f_traffic</span><span class="o">-</span><span class="n">signs</span><span class="o">-</span><span class="n">data</span><span class="o">/</span><span class="n">traffic</span><span class="o">-</span><span class="n">signs</span><span class="o">-</span><span class="n">data</span><span class="p">.</span><span class="nb">zip</span>
+</code></pre></div></div>
+
+<p>Now, unzip the data to a spot that’s easy to access</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">!</span><span class="n">unzip</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">joe</span><span class="o">/</span><span class="n">nbs</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gtsdb</span><span class="o">/</span><span class="n">traffic</span><span class="o">-</span><span class="n">signs</span><span class="o">-</span><span class="n">data</span><span class="p">.</span><span class="nb">zip</span> <span class="o">-</span><span class="n">d</span> <span class="o">/</span><span class="n">home</span><span class="o">/</span><span class="n">joe</span><span class="o">/</span><span class="n">nbs</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">gtsdb</span>
+</code></pre></div></div>
+
+<p>I want to mention briefly here that the dataset provided does not maintain the resolution of the original dataset.  The <a href="http://benchmark.ini.rub.de/?section=gtsrb&amp;subsection=dataset">original data</a> had image sizes varying from 3x15x15 to 3x250x250, where the second two numbers represent the number of xy pixels in the three color channels (RGB).  The data in the pickle file has been standardized to 3x32x32.  This low resolution will be remedied in the <em>Building the DataBunch</em> subsection below.</p>
+
+<h3 id="transform-the-data">Transform the Data</h3>
+
+<p>The <a href="https://docs.fast.ai/">fastai library</a> has many ways of interpreting <a href="https://docs.fast.ai/vision.data.html#ImageDataBunch">“data bunches”</a>, but the easiest one to work with given the structure of the available data is the <a href="https://github.com/fastai/fastai/blob/master/fastai/vision/data.py#L122">from_csv</a> option.  In order to be able to use this option, the data must be transformed into the correct structure.</p>
+
+<p>The code below will take the pickled data and create two folders (<code class="language-plaintext highlighter-rouge">train</code> and <code class="language-plaintext highlighter-rouge">test</code>), populate them with images from each dataset, as well as create a <code class="language-plaintext highlighter-rouge">labels.csv</code> with ground truth labels for each image in the two folders.  <em>Note: because of the fastai convention, the <code class="language-plaintext highlighter-rouge">valid</code> dataset is absorbed into the <code class="language-plaintext highlighter-rouge">train</code> set and then the valid set is reconstituted.  See cells below for more context and details.</em></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="c1"># load the database (already been pickled)
+</span><span class="n">root</span> <span class="o">=</span> <span class="s">"/home/joe/nbs/data/gtsdb/"</span>
+<span class="n">training_file</span> <span class="o">=</span>  <span class="n">root</span> <span class="o">+</span> <span class="s">"train.p"</span>
+<span class="n">validation_file</span><span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s">"valid.p"</span>
+<span class="n">testing_file</span> <span class="o">=</span>   <span class="n">root</span> <span class="o">+</span> <span class="s">"test.p"</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">training_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">train</span> <span class="o">=</span> <span class="n">pickle</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">validation_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">pickle</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">testing_file</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">'rb'</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">test</span> <span class="o">=</span> <span class="n">pickle</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="c1"># convert to format for ImageDataBunch
+</span><span class="n">gtsrb_path</span> <span class="o">=</span> <span class="n">root</span> <span class="o">+</span> <span class="s">'xformed'</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">gtsrb_path</span><span class="o">+</span><span class="s">'/labels.csv'</span><span class="p">,</span> <span class="s">'w'</span><span class="p">)</span> <span class="k">as</span> <span class="n">labels</span><span class="p">:</span>
+    <span class="c1"># -- TRAINING --
+</span>    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">train</span><span class="p">[</span><span class="s">'features'</span><span class="p">],</span> <span class="n">train</span><span class="p">[</span><span class="s">'labels'</span><span class="p">]):</span>
+        <span class="c1"># write f to a jpg
+</span>        <span class="n">relname</span> <span class="o">=</span> <span class="s">"train/{name}.png"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">counter</span><span class="p">)</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s">"{root}/"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">gtsrb_path</span><span class="p">)</span> <span class="o">+</span> <span class="n">relname</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">im</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="c1"># write l to labels.csv
+</span>        <span class="n">labels</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"{file},{label}</span><span class="se">\n</span><span class="s">"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">relname</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">l</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># -- VALIDATION (lump it in with the training data) --
+</span>    <span class="c1">#counter = 0
+</span>    <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">valid</span><span class="p">[</span><span class="s">'features'</span><span class="p">],</span> <span class="n">valid</span><span class="p">[</span><span class="s">'labels'</span><span class="p">]):</span>
+        <span class="c1"># write f to a jpg
+</span>        <span class="n">relname</span> <span class="o">=</span> <span class="s">"train/{name}.png"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">counter</span><span class="p">)</span>  <span class="c1"># account for fastai databunch convention
+</span>        <span class="n">fname</span> <span class="o">=</span> <span class="s">"{root}/"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">gtsrb_path</span><span class="p">)</span> <span class="o">+</span> <span class="n">relname</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">im</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="c1"># write l to labels.csv
+</span>        <span class="n">labels</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"{file},{label}</span><span class="se">\n</span><span class="s">"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">relname</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">l</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># -- TEST --
+</span>    <span class="k">for</span> <span class="n">f</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="s">'features'</span><span class="p">],</span> <span class="n">test</span><span class="p">[</span><span class="s">'labels'</span><span class="p">]):</span>
+        <span class="c1"># write f to a jpg
+</span>        <span class="n">relname</span> <span class="o">=</span> <span class="s">"test/{name}.png"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">counter</span><span class="p">)</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="s">"{root}/"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">root</span><span class="o">=</span><span class="n">gtsrb_path</span><span class="p">)</span> <span class="o">+</span> <span class="n">relname</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="p">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">im</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="c1"># write l to labels.csv
+</span>        <span class="n">labels</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"{file},{label}</span><span class="se">\n</span><span class="s">"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">relname</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">l</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</code></pre></div></div>
+
+<h3 id="about-the-data">About the Data</h3>
+
+<p>Fastai uses a lot of <a href="https://docs.python.org/3/library/pathlib.html">pathlib</a> objects, so let’s set up an iterable ( list ) of <code class="language-plaintext highlighter-rouge">PosixPath</code> objects within our data directory.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s">"/home/joe/nbs/data/gtsdb/xformed"</span><span class="p">)</span>
+<span class="n">path</span><span class="p">.</span><span class="n">ls</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[PosixPath('/home/joe/nbs/data/gtsdb/xformed/train'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/labels.csv'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/test'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/.ipynb_checkpoints')]
+</code></pre></div></div>
+
+<p>Let’s do a little exploratory data analysis.  First, set up a path to the training set.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#path_anno = path/'annotations'
+</span><span class="n">path_train_img</span> <span class="o">=</span> <span class="n">path</span><span class="o">/</span><span class="s">'train'</span>
+</code></pre></div></div>
+
+<p>The first thing to notice is how cool pathlib objects are!  Check out the syntax in the line above:  python knows to interpret this line to mean “return a <code class="language-plaintext highlighter-rouge">PosixPath</code> object representing the training data”.  I think this is pretty awesome!</p>
+
+<p>Now, onto the data, itself; as data scientists, we <em>always</em> need to understand well <em>(i)</em> what the problem is and <em>(ii)</em> what is the structure and quality of the present data.  These two pieces of information are required to make substantive and interpretable predictions.</p>
+
+<p>The answer to <em>(i)</em> above is quite easy: <em>We are trying to “train” a predictive model that will perform well on representative data</em> not <em>seen during the training process</em>.</p>
+
+<p>The answer to <em>(ii)</em> requires some exploratory data analysis: visualization, statistical reduction, etc…  The statistical reduction I did as part of the Self-Driving Car Nanodegree and the <a href="https://jwdinius.github.io/blog/2017/traffic-signs">results</a> can be summarized as:</p>
+
+<ul>
+  <li>43 unique class ids</li>
+  <li>39209 training images</li>
+  <li>12630 images in the test set</li>
+  <li>Each image size is 3 channels x 32 pixels x 32 pixels</li>
+</ul>
+
+<p>If you follow the link, you will notice that there is significantly non-uniform distribution of class frequencies in the dataset; there are some classes that occur ten-times as frequently as some others.  This may present a problem for our classifier, but, as you shall soon see fastai handles this problem with aplomb.</p>
+
+<p>Fastai provides some very useful utilities out-of-the-box for doing cursory analyses of data.  For instance, to get the path to five random training images, you can call <code class="language-plaintext highlighter-rouge">get_image_files</code> like so:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">fnames</span> <span class="o">=</span> <span class="n">get_image_files</span><span class="p">(</span><span class="n">path_train_img</span><span class="p">)</span>
+<span class="n">fnames</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[PosixPath('/home/joe/nbs/data/gtsdb/xformed/train/16692.png'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/train/25489.png'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/train/24669.png'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/train/25263.png'),
+ PosixPath('/home/joe/nbs/data/gtsdb/xformed/train/712.png')]
+</code></pre></div></div>
+
+<p><em>Note: the random order is a consequence of the OS, not of Python - see this <a href="https://stackoverflow.com/questions/6773584/how-is-pythons-glob-glob-ordered">Stack Overflow thread</a> for more context</em>.</p>
+
+<p>We can query the structure of the <code class="language-plaintext highlighter-rouge">labels.csv</code> directly too:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="p">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="o">/</span><span class="s">'labels.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="p">.</span><span class="n">head</span><span class="p">()</span>
+<span class="c1">#doc(ImageDataBunch.from_csv)
+</span></code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>train/0.png</td>
+      <td>41</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>train/1.png</td>
+      <td>41</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>train/2.png</td>
+      <td>41</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>train/3.png</td>
+      <td>41</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>train/4.png</td>
+      <td>41</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="build-the-databunch">Build the DataBunch</h3>
+
+<p>The most important step here is constructing the <code class="language-plaintext highlighter-rouge">ImageDataBunch</code>.  How fastai achieves this is quite remarkable.  I’ll make the call and then explain what’s going on afterwards:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="n">ImageDataBunch</span><span class="p">.</span><span class="n">from_csv</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ds_tfms</span><span class="o">=</span><span class="n">get_transforms</span><span class="p">(),</span> <span class="n">size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">bs</span><span class="o">=</span><span class="n">bs</span><span class="p">,</span> <span class="n">valid_pct</span><span class="o">=</span><span class="mf">0.3</span><span class="p">).</span><span class="n">normalize</span><span class="p">(</span><span class="n">imagenet_stats</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>In the above line, we are telling fastai to create an <code class="language-plaintext highlighter-rouge">ImageDataBunch</code> object:</p>
+
+<ul>
+  <li>from a <code class="language-plaintext highlighter-rouge">labels.csv</code> file (which is the default for <code class="language-plaintext highlighter-rouge">from_csv</code>)</li>
+  <li>using the set of data augmentations/transformations defined in the <code class="language-plaintext highlighter-rouge">get_transforms()</code> method</li>
+  <li>with 3x256x256 resolution (which implicitly uses interpolation to do the upsampling)</li>
+  <li>with specified batch size (set at the beginning of this notebook)</li>
+  <li>with 30% of the data reserved for validation during training</li>
+  <li>using the predefined imagenet normalization protocol</li>
+</ul>
+
+<p>Holy cow!  That’s a lot that this one line is doing.  But it gets better.  <code class="language-plaintext highlighter-rouge">ImageDataBunch</code> has a rich public interface (well, it’s python so it’s all public but…), so we get a lot of nice utilities for free.  One such utility is the <code class="language-plaintext highlighter-rouge">show_batch</code> method that allows a quick-and-dirty visualization of some of the images present in our dataset:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span><span class="p">.</span><span class="n">show_batch</span><span class="p">(</span><span class="n">rows</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_30_0.png" alt="png" /></p>
+
+<p>This is pretty awesome, but, even in this small sample set, there are some gnarly images:  poor lighting, limited resolution of features, etc…  Many of the images are pretty benign though.  Hopefully, I can take an off-the-shelf backbone network and add some fully-connected layers at the top and achieve solid performance.  We’ll see if this approach works in the next section.</p>
+
+<h2 id="selecting-and-training-a-model">Selecting and Training a Model</h2>
+
+<p>The <a href="https://towardsdatascience.com/introduction-to-resnets-c0a830a288a4">resnet</a> family of architectures has achieved amazing things in inference over the last few years because it has allowed researchers to handle the <a href="https://en.wikipedia.org/wiki/Vanishing_gradient_problem">vanishing gradient</a> problem.  Really deep networks can be difficult to train because of this phenomena, but the skip connections present in resnet models overcome this problem.  Why do we want deeper networks?  Simple.  Deeper networks have more parameters and more parameters generally means that more complex relations present in a training set can be better represented.</p>
+
+<p>As with everything in data science, there is a trade-off present between the following factors:</p>
+
+<ul>
+  <li>Training time - we don’t want the process to take too long</li>
+  <li>Accuracy - we want the model to be accurate, obviously</li>
+  <li>Interpretability - we want to understand what the hell is going on with the end model</li>
+</ul>
+
+<p>Generally, interpretability and training time both suffer when the number of parameters increases.  In light of these considerations, I chose resnet34 as the back-bone.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span> <span class="o">=</span> <span class="n">cnn_learner</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">base_arch</span><span class="o">=</span><span class="n">models</span><span class="p">.</span><span class="n">resnet34</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">accuracy</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>You can view a summary of the model structure created above by using the <code class="language-plaintext highlighter-rouge">model</code> method:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">model</span>
+</code></pre></div></div>
+
+<p>Let’s do training for a few epochs and see how well this model learns, shall we?</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">fit_one_cycle</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.562474</td>
+      <td>0.302694</td>
+      <td>0.897691</td>
+      <td>01:45</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0.228094</td>
+      <td>0.107997</td>
+      <td>0.965340</td>
+      <td>01:45</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>0.157664</td>
+      <td>0.079074</td>
+      <td>0.974471</td>
+      <td>01:45</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Looks like we are on the right track; the train and valid losses are still going down, the training time per epoch is under two minutes (on a 1080Ti graphics card).  This seems like an approach that we can improve upon in a timely fashion, so let’s save our model in it’s current state and fine-tune our approach.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="s">'gtsrb-stage-1'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="assessing-where-we-are-so-far">Assessing Where We Are So Far</h3>
+
+<p>A good place to start is to see which images we are having the greatest difficulty with.  Fastai provides this capability right out-of-the-box:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span> <span class="o">=</span> <span class="n">ClassificationInterpretation</span><span class="p">.</span><span class="n">from_learner</span><span class="p">(</span><span class="n">learn</span><span class="p">)</span>
+
+<span class="n">losses</span><span class="p">,</span><span class="n">idxs</span> <span class="o">=</span> <span class="n">interp</span><span class="p">.</span><span class="n">top_losses</span><span class="p">()</span>
+
+<span class="c1">#len(data.valid_ds)==len(losses)==len(idxs)
+</span></code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span><span class="p">.</span><span class="n">plot_top_losses</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span><span class="mi">11</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+Clipping input data to the valid range for imshow with RGB data ([0..1] for floats or [0..255] for integers).
+</code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_44_1.png" alt="png" /></p>
+
+<p>Some of these images are pretty gnarly!  Look at the bottom-right one, for crying out loud!  In the original notebook, though, the visualizations had a similar blurring, which could be intentional.  I would have a hard time classifying some of these images, so it’s not a big deal that we haven’t learned the correct label for these.</p>
+
+<p>A more top-level metric for assessing our classifier’s performance is too look at the confusion matrix.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#doc(interp.plot_top_losses)
+</span><span class="n">doc</span><span class="p">(</span><span class="n">interp</span><span class="p">.</span><span class="n">plot_confusion_matrix</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span><span class="p">.</span><span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_47_0.png" alt="png" /></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span><span class="p">.</span><span class="n">most_confused</span><span class="p">(</span><span class="n">min_val</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[(3, 5, 35),
+ (8, 7, 33),
+ (2, 5, 25),
+ (1, 2, 20),
+ (39, 38, 19),
+ (37, 36, 17),
+ (34, 33, 16),
+ (5, 2, 14),
+ (4, 2, 13),
+ (2, 1, 11),
+ (2, 3, 10),
+ (5, 3, 10),
+ (8, 5, 10),
+ (3, 2, 9),
+ (5, 1, 9),
+ (5, 7, 9),
+ (1, 5, 8),
+ (19, 20, 7),
+ (38, 39, 6),
+ (0, 1, 5),
+ (1, 7, 5),
+ (3, 1, 5),
+ (33, 34, 5),
+ (1, 4, 4),
+ (2, 4, 4),
+ (2, 7, 4)]
+</code></pre></div></div>
+
+<p>We have some classes present that are really stymying our classifier at this point!  Class 3 images are incorrectly classified as belonging to Class 5 a staggering 8% of the time!  Moreover, there are several classes that are confusing our network at this point.  Not to worry; we are just beginning to train.</p>
+
+<h3 id="unfreezing-fine-tuning-and-learning-rates">Unfreezing, Fine-Tuning, and Learning Rates</h3>
+
+<p>Since our model is working reasonably well at this point, let’s <em>unfreeze</em> it and train some more.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="s">'gtsrb-stage-1'</span><span class="p">)</span>
+<span class="n">learn</span><span class="p">.</span><span class="n">unfreeze</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">fit_one_cycle</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div></div>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.039360</td>
+      <td>0.018983</td>
+      <td>0.993955</td>
+      <td>02:15</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Accuracy looks good, but the train and valid losses are a bit out-of-step with one another.  This step is promising enough to warrant a save, but perhaps we should look at tweaking the learning rate and see if we can improve performance that way.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="s">'gtsrb-stage-2'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">lr_find</span><span class="p">()</span> <span class="c1"># whoops, this doesn't work...
+</span></code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LR Finder is complete, type {learner_name}.recorder.plot() to see the graph.
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">recorder</span><span class="p">.</span><span class="n">plot</span><span class="p">()</span> <span class="c1"># clearly don't get that many iterations, check the doc()
+</span></code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_57_0.png" alt="png" /></p>
+
+<p>Well, this didn’t work…  I was hoping to view the loss, and more importantly the change in loss, as a function of the learning rate over 100 iterations, but it looks like the method above failed.  Let’s look at the docs.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">doc</span><span class="p">(</span><span class="n">learn</span><span class="p">.</span><span class="n">lr_find</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Cool, now it seems clear what happened:  In the plot above, we can see that the loss is beginning to diverge around 1e-3, and the <code class="language-plaintext highlighter-rouge">lr_find()</code> triggers an exit when this happens.  Let’s try executing the method again.  This time, though, we will narrow the search range and tell the routine not to stop if the loss is diverging.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">lr_find</span><span class="p">(</span><span class="n">start_lr</span><span class="o">=</span><span class="mf">1e-8</span><span class="p">,</span> <span class="n">end_lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">stop_div</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LR Finder is complete, type {learner_name}.recorder.plot() to see the graph.
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">recorder</span><span class="p">.</span><span class="n">plot</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_62_0.png" alt="png" /></p>
+
+<p>This image may just look like noise, but it’s not.  We can see a clear macroscopic trend that the rate of loss is consistently negative from about 9e-6 to 1e-5.  We can now use <a href="https://www.jeremyjordan.me/nn-learning-rate/">learning rate annealing</a>, which fastai natively supports, to fine-tune the later stages of training during each epoch.  Let’s unfreeze and continue training using learning rate annealing.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">unfreeze</span><span class="p">()</span>
+<span class="n">learn</span><span class="p">.</span><span class="n">fit_one_cycle</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">max_lr</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="mf">9e-6</span><span class="p">,</span><span class="mf">1e-5</span><span class="p">))</span>
+</code></pre></div></div>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: left;">
+      <th>epoch</th>
+      <th>train_loss</th>
+      <th>valid_loss</th>
+      <th>accuracy</th>
+      <th>time</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.025687</td>
+      <td>0.015437</td>
+      <td>0.995885</td>
+      <td>02:14</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>0.019947</td>
+      <td>0.009846</td>
+      <td>0.997299</td>
+      <td>02:16</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>0.011825</td>
+      <td>0.006923</td>
+      <td>0.997878</td>
+      <td>02:15</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>0.010385</td>
+      <td>0.004732</td>
+      <td>0.999100</td>
+      <td>02:15</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>0.007687</td>
+      <td>0.004061</td>
+      <td>0.998585</td>
+      <td>02:16</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>0.005399</td>
+      <td>0.002920</td>
+      <td>0.999035</td>
+      <td>02:16</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>0.004805</td>
+      <td>0.002963</td>
+      <td>0.998971</td>
+      <td>02:16</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>0.002097</td>
+      <td>0.002202</td>
+      <td>0.999357</td>
+      <td>02:16</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>0.002002</td>
+      <td>0.002068</td>
+      <td>0.999357</td>
+      <td>02:15</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>0.002493</td>
+      <td>0.002224</td>
+      <td>0.999164</td>
+      <td>02:15</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Awesome!  We seem to have converged in terms of train and valid losses, and these losses are consistent with each other, by the tenth epoch.  Also, the accuracy number looks awesome.  I’m not concerned about overfitting yet, but this we can assess if our holdout set accuracy is significantly different than the 99.92% accuracy reported above.  Let’s go ahead and save the model.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">save</span><span class="p">(</span><span class="s">'gtsrb-agaigg'</span><span class="p">)</span>  <span class="c1"># As Good As It's Going To Get
+</span></code></pre></div></div>
+
+<p>Let’s redo our classfication interpretation analysis from above (a subset of it, anyways).  First, consider what is still confusing our classifier.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span> <span class="o">=</span> <span class="n">ClassificationInterpretation</span><span class="p">.</span><span class="n">from_learner</span><span class="p">(</span><span class="n">learn</span><span class="p">)</span>
+<span class="n">interp</span><span class="p">.</span><span class="n">most_confused</span><span class="p">(</span><span class="n">min_val</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[(3, 5, 2), (19, 20, 2)]
+</code></pre></div></div>
+
+<p>This is not an issue anymore; only two classes have more than two misclassifications.  For kicks, let’s look at the overall confusion matrix.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">interp</span><span class="p">.</span><span class="n">plot_confusion_matrix</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">12</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><img src="/assets/img/traffic-signs/output_70_0.png" alt="png" /></p>
+
+<p>There are no longer hardly any entries present in the off-diagonal, which means that we are classifying exceptionally well.  Let’s move on to our test set now.</p>
+
+<h2 id="performance-on-the-test-set">Performance on the Test Set</h2>
+
+<p>We first export the model. What’s great about the fastai library is that, aside from exporting the model weights learned during training, the <code class="language-plaintext highlighter-rouge">export</code> method also exports the data transformations to be used on the input images.  This is really convenient, since fastai will perform all necessary transformations automatically.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">learn</span><span class="p">.</span><span class="n">export</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>First, let’s create our test set.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">test_data</span> <span class="o">=</span> <span class="n">ImageList</span><span class="p">.</span><span class="n">from_folder</span><span class="p">(</span><span class="n">path</span><span class="o">/</span><span class="s">"test"</span><span class="p">)</span>
+<span class="n">test_data</span><span class="p">.</span><span class="n">items</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>array([PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/41636.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/45271.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/49272.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/39950.png'), ...,
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/47310.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/41847.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/51407.png'),
+       PosixPath('/home/joe/nbs/data/gtsdb/xformed/test/43086.png')], dtype=object)
+</code></pre></div></div>
+
+<p>I have printed out the <code class="language-plaintext highlighter-rouge">test_data.items</code> member variable to highlight an import data structure that will be used later on.  <em>Note the random order of the returned object.</em>  Let’s load the learner we just exported, as well as telling the method which data set we are going to use.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">trained_learner</span> <span class="o">=</span> <span class="n">load_learner</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="n">test_data</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We can use the <code class="language-plaintext highlighter-rouge">get_preds</code> method to do predictions on the entire dataset.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">preds</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">trained_learner</span><span class="p">.</span><span class="n">get_preds</span><span class="p">(</span><span class="n">ds_type</span><span class="o">=</span><span class="n">DatasetType</span><span class="p">.</span><span class="n">Test</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">preds</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tensor([[2.1014e-07, 5.7699e-07, 4.6946e-08, 1.9493e-07, 2.6473e-07, 2.1289e-08,
+         1.3496e-07, 1.0974e-08, 1.0234e-08, 7.8219e-08, 1.3587e-08, 1.6515e-07,
+         1.1508e-07, 2.9470e-06, 3.8857e-08, 4.3122e-07, 1.4205e-06, 9.5760e-08,
+         4.5615e-08, 5.3949e-06, 5.4691e-07, 4.6975e-07, 1.7363e-06, 7.4102e-10,
+         2.4850e-08, 5.1275e-08, 6.9207e-08, 5.6077e-07, 6.6335e-07, 2.3450e-08,
+         1.2193e-10, 2.4853e-08, 5.4437e-07, 9.9976e-01, 1.9789e-04, 4.5010e-07,
+         8.4502e-06, 1.6368e-06, 3.1704e-07, 5.3876e-08, 1.6155e-06, 6.1851e-06,
+         7.9492e-06],
+        [6.8519e-08, 2.1272e-07, 8.3908e-08, 1.2190e-07, 4.7836e-08, 1.2757e-08,
+         7.7461e-10, 4.0631e-08, 1.9651e-08, 2.3144e-08, 4.8521e-09, 4.4070e-08,
+         1.6477e-09, 5.5614e-08, 2.6869e-07, 9.4237e-10, 4.4921e-08, 9.5284e-10,
+         1.7851e-10, 2.4341e-09, 8.4882e-10, 3.1840e-10, 8.0760e-09, 5.5333e-09,
+         1.3647e-08, 7.0830e-09, 1.2280e-10, 2.9605e-08, 5.4412e-09, 4.5411e-09,
+         3.8417e-09, 2.1684e-10, 2.1413e-08, 5.1652e-07, 1.0532e-05, 1.6425e-06,
+         3.0144e-07, 4.8374e-06, 5.1991e-05, 7.3520e-08, 9.9993e-01, 7.7164e-09,
+         2.1531e-08],
+        [4.5398e-10, 5.0698e-10, 1.8937e-10, 6.7714e-09, 4.2922e-08, 2.9346e-10,
+         2.0186e-08, 4.3468e-09, 2.3866e-09, 2.9830e-09, 4.8131e-11, 7.6328e-09,
+         6.2824e-08, 4.1711e-09, 1.0402e-08, 6.2690e-06, 2.3297e-10, 1.3416e-08,
+         9.3833e-07, 8.0485e-10, 6.2071e-09, 4.5816e-09, 1.7075e-08, 1.1470e-09,
+         1.8430e-06, 4.3662e-10, 1.0337e-08, 2.3974e-09, 7.9333e-09, 9.7260e-08,
+         4.7996e-09, 1.2943e-10, 3.3509e-06, 1.1368e-07, 2.2780e-06, 9.9998e-01,
+         5.1092e-06, 2.3727e-06, 7.3091e-09, 1.9760e-07, 5.9994e-09, 1.7887e-08,
+         5.4037e-09],
+        [2.7630e-06, 9.9998e-01, 1.3118e-05, 1.0926e-06, 7.8539e-07, 7.3438e-07,
+         1.0448e-08, 2.2054e-08, 8.8784e-10, 1.0250e-07, 2.4266e-09, 4.6259e-10,
+         2.9051e-11, 7.3322e-09, 3.1774e-09, 4.7056e-09, 3.2660e-11, 9.4366e-11,
+         2.2376e-11, 2.4742e-10, 3.2632e-11, 1.1434e-09, 7.1049e-10, 4.0327e-11,
+         2.7828e-10, 6.5027e-10, 2.8264e-10, 6.0451e-10, 3.3024e-08, 1.0737e-10,
+         4.5560e-11, 8.2439e-11, 8.7960e-10, 1.9467e-09, 6.2689e-10, 5.3963e-10,
+         1.4400e-08, 7.2111e-10, 3.5397e-09, 1.4737e-11, 2.2655e-08, 5.8966e-09,
+         1.4463e-09],
+        [7.5793e-10, 2.4665e-09, 2.1775e-09, 3.3764e-08, 1.4015e-09, 2.5104e-09,
+         6.7204e-07, 4.6676e-10, 3.1474e-10, 6.7211e-10, 4.5888e-08, 2.2417e-08,
+         1.0190e-08, 1.1708e-07, 1.2427e-08, 2.1765e-08, 4.2239e-07, 1.0454e-08,
+         2.5398e-08, 1.2768e-06, 5.3065e-07, 4.1096e-09, 2.0382e-08, 3.0142e-11,
+         1.1977e-09, 5.9843e-10, 1.5618e-08, 2.6258e-08, 5.4211e-09, 1.4573e-09,
+         3.3037e-11, 2.2948e-09, 9.5089e-07, 9.9997e-01, 1.2350e-05, 8.2833e-09,
+         9.4873e-07, 8.9706e-08, 3.0854e-08, 1.2722e-07, 1.3218e-07, 8.0327e-08,
+         1.0087e-05]])
+</code></pre></div></div>
+
+<p>The predictions are class probabilities and not labels, but we can do the transformation easily enough.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pred_labels</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="mi">1</span><span class="p">).</span><span class="n">numpy</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[33 40 35  1 33]
+</code></pre></div></div>
+
+<p>Now, we have class labels, which is great.  Next, we address the out-of-order problem.  We can get the image names by using the <code class="language-plaintext highlighter-rouge">name</code> method of <code class="language-plaintext highlighter-rouge">PosixPath</code> objects to get the image filenames with the paths stripped:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">image_names</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">_t</span><span class="p">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">_t</span> <span class="ow">in</span> <span class="n">test_data</span><span class="p">.</span><span class="n">items</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">image_names</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>['41636.png' '45271.png' '49272.png' '39950.png' '50694.png']
+</code></pre></div></div>
+
+<p>Now, we can use numpy’s <code class="language-plaintext highlighter-rouge">argsort</code> to return the list of indices that sort the original array.  This is important because of how the original dataset was constructed (see the section <strong>Tranform the Data</strong> above); reordering our predictions array to match the ordering in the <code class="language-plaintext highlighter-rouge">labels.csv</code> file will make accuracy assessment much easier.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sorted_image_idx</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">image_names</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ordered_preds</span> <span class="o">=</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">sorted_image_idx</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ordered_preds</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>array([16,  1, 38, 33, 11])
+</code></pre></div></div>
+
+<h4 id="extract-the-ground-truth">Extract the Ground Truth</h4>
+
+<p>We can pull the ground truth from <code class="language-plaintext highlighter-rouge">labels.csv</code> with the following simple utility:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">true_labels</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="o">/</span><span class="s">"labels.csv"</span><span class="p">,</span> <span class="s">'r'</span><span class="p">)</span> <span class="k">as</span> <span class="n">_f</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">dropwhile</span>
+    <span class="k">for</span> <span class="n">cur_line</span> <span class="ow">in</span> <span class="n">dropwhile</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">","</span><span class="p">)[</span><span class="mi">0</span><span class="p">].</span><span class="n">startswith</span><span class="p">(</span><span class="s">'train'</span><span class="p">),</span> <span class="n">_f</span><span class="p">):</span>
+        <span class="n">_image</span><span class="p">,</span> <span class="n">_label</span> <span class="o">=</span> <span class="n">cur_line</span><span class="p">.</span><span class="n">strip</span><span class="p">().</span><span class="n">split</span><span class="p">(</span><span class="s">","</span><span class="p">)</span>
+        <span class="n">true_labels</span><span class="p">.</span><span class="n">append</span><span class="p">((</span><span class="n">_image</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">_label</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<p>Let’s check that this method worked by comparing the first few labels in the <code class="language-plaintext highlighter-rouge">true_labels</code> data structure with our <code class="language-plaintext highlighter-rouge">ordered_preds</code> from above.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">true_labels</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[('test/39209.png', 16),
+ ('test/39210.png', 1),
+ ('test/39211.png', 38),
+ ('test/39212.png', 33),
+ ('test/39213.png', 11)]
+</code></pre></div></div>
+
+<p>Great!  The first five predictions match, so it looks like the ordering has worked.  Let’s make sure that the two data structures have the same size, then we can do point-by-point comparison for accuracy.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">)</span> <span class="o">==</span> <span class="n">ordered_preds</span><span class="p">.</span><span class="n">size</span>
+<span class="n">acc_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">tot_ctr</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">_pl</span><span class="p">,</span> <span class="n">_tl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ordered_preds</span><span class="p">,</span> <span class="n">true_labels</span><span class="p">):</span>
+    <span class="n">tot_ctr</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">_pl</span> <span class="o">==</span> <span class="n">_tl</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">acc_ctr</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'{image} -&gt; Predicted={pred}, Actual={actual}'</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">image</span><span class="o">=</span><span class="n">_tl</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pred</span><span class="o">=</span><span class="n">_pl</span><span class="p">,</span> <span class="n">actual</span><span class="o">=</span><span class="n">_tl</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+<span class="n">accuracy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">acc_ctr</span><span class="p">)</span> <span class="o">/</span> <span class="n">tot_ctr</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Total Accuracy on Test Set ({images} images): {accuracy}"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">true_labels</span><span class="p">),</span> <span class="n">accuracy</span><span class="o">=</span><span class="n">accuracy</span><span class="p">))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test/42045.png -&gt; Predicted=3, Actual=5
+test/43066.png -&gt; Predicted=4, Actual=5
+test/43220.png -&gt; Predicted=25, Actual=30
+test/44850.png -&gt; Predicted=5, Actual=3
+test/46620.png -&gt; Predicted=36, Actual=37
+test/51605.png -&gt; Predicted=5, Actual=3
+Total Accuracy on Test Set (12630 images): 0.9995249406175772
+</code></pre></div></div>
+
+<p>Six images out of 12630 were classified incorrectly.  Only six!  Moreover, four of these involve classes 3 and 5, which we know we had difficulty with during training from our previous analysis.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Using the fastai library, I was able to demonstrate how to achieve 99.95% accuracy on the German Traffic Sign Recognition Benchmark dataset.  This result constitutes an improvement to the state-of-the-art method that was used to win a 2011 challenge using this dataset.  Given the high accuracy observed, there is not much more improvement to be achieved.</p>
+
+  </article>
+
+  
+
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>

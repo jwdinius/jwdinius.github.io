@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Joe Dinius | Docker Strangelove</title>
+  <meta name="description" content="Project/Blog of Joe Dinius, Ph.D. Based on [*folio](https://github.com/bogoli/-folio) design.
+">
+
+  <link rel="shortcut icon" href="https://jwdinius.github.io/assets/img/favicon.ico">
+
+  <link rel="stylesheet" href="https://jwdinius.github.io/assets/css/main.css">
+  <link rel="canonical" href="https://jwdinius.github.io/blog/2019/dockerstrangelove/">
+  
+</head>
+
+
+  <body>
+
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    
+    <span class="site-title">
+        
+        <strong>Joe</strong> Dinius
+    </span>
+    
+
+    <nav class="site-nav">
+      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"/>
+              <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"/>
+              <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+      <div class="trigger">
+        <!-- About -->
+        <a class="page-link" href="https://jwdinius.github.io/">about</a>
+
+        <!-- Blog -->
+        <a class="page-link" href="https://jwdinius.github.io/blog/">blog</a>
+
+        <!-- Pages -->
+        
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/learning/">learning</a>
+          
+        
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/projects/">portfolio</a>
+          
+        
+          
+            <a class="page-link" href="https://jwdinius.github.io/publications/">publications</a>
+          
+        
+          
+        
+          
+        
+          
+        
+
+        <!-- CV link -->
+        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
+
+      </div>
+    </nav>
+
+  </div>
+
+</header>
+
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+
+  <header class="post-header">
+    <h1 class="post-title">Docker Strangelove</h1>
+    <p class="post-meta">November 2, 2019</p>
+  </header>
+
+  <article class="post-content">
+    <p><em>Caveat: I run Ubuntu, and so the contents of this post are specific to this context.  Although I believe much of the content would generalize, I have not verified.  Regardless, hopefully there will be something of interest to you non-Ubuntu’s out there!</em></p>
+
+<p><a href="https://www.docker.com/">Docker</a> is all-the-rage nowadays because of it’s ability to isolate application environments for development and testing.  They are super-popular in web contexts, because you can setup lightweight servers and mocks for isolated testing, but they are only just beginning to catch on in robotics.  Better late than never, I guess.  In this post, I’m going to talk about some of the motivating cases for using Docker in robotics development.  I use <a href="https://www.ros.org/">ROS</a> as the starting point, but the context carries over to other networking protocols and frameworks.  The topics discussed herein should be sufficiently general to get the point across.  Anyways, let’s get on with it.</p>
+
+<p>To all the roboticists out there:  How many times have you come across a software package that you thought looked promising only to discover that the dependencies clash with your global dev environment?  In such a case, you could locally install the clashing dependencies and then point the package to the local install path while building the package.  While this certainly works, you are still modifying your workspace and creating potential issues for future development.  A <em>better</em> solution would be to create an isolated dev environment, one where you could install the needed dependencies and use them only in the context of development/testing of the new package.  This is where containers, particularly <a href="">docker</a> containers, come in.  Enough preamble: How about some practical use cases?</p>
+
+<p>For the uninitiated, ROS is a popular framework for robotics development.  For the initiated, ROS can be endlessly frustrating because of the highly distributed and fluid nature of package development.  I will go through a couple of use-cases of how you can use There are different ROS releases, and these releases only have debian packages for certain Ubuntu releases; for example, ROS kinetic is not supported for Ubuntu 18.04.  If you are running Ubuntu 18.04 and you find an interesting ROS package built with kinetic, you’re hosed right?  <em>Wrong!</em>  This leads to the first practical use-case:</p>
+
+<h2 id="containers-alleviate-releaseversioning-issues">Containers alleviate release/versioning issues</h2>
+
+<p>With Docker, you can build a base image for your package based on the version of Ubuntu you <em>want</em>, rather than the version of Ubuntu you are <em>running</em>.  Let’s say you are running Bionic (18.04) on your machine, but one of your colleagues shows you a cool demo they made using kinetic and you want to recreate it.  ROS kinetic is not supported for Ubuntu 18.04, so how would you do this?  You could create a virtual machine based on Xenial, but virtual machines are unwieldy and resource-intensive.  You could buy a new machine, flash it with Xenial and install, but this is not desirable either for financial reasons.  Or, you could install ROS kinetic, and all of the necessary packages, from source on your machine, but this might clash with your current dev environment and would be quite time-intensive.</p>
+
+<p>All of these options suck, but there is another one:  <em>build a Docker image using a Xenial-based image as the starting point</em>.  <a href="https://hub.docker.com/">Dockerhub</a> provides a great starting point for finding base images that can be easily extended for multiple contexts.  When you do <code class="language-plaintext highlighter-rouge">apt-get</code> to install debian packages, you will be installing them only within the image context: <em>they won’t affect your global dev context!</em>  For the example, at hand, you can install ROS kinetic and all of the package dependencies in a docker image’s context and not worry about polluting your global workspace.</p>
+
+<p>This example covers the use-case of single applications, but robotic systems are composed of many networked <em>stacks</em>, <em>i.e. combination of multiple software functions for a common purpose</em>, that communicate with each other in tightly-coupled ways; sensors, algorithms, and motors all must robustly and efficiently communicate with each other for the robot to operate successfully.  What if we discover a major bug in one of our stacks, and that fixing this bug could have negative impact on the other stacks?  Here comes use-case number two:</p>
+
+<h2 id="containers-isolate-dependencies">Containers isolate dependencies</h2>
+
+<p>Because Docker was designed to work in a web context, which is by its nature networking-friendly, we can use Docker for the context presented in the previous paragraph.  Each stack can be encapsulated in its own docker image and all images can be run concurrently during operation of the robot.  This approach is much easier to maintain; each stack can be tested in its own isolated context with greater ease.</p>
+
+<p>I have a lot more to say on this, but the words are escaping me at the moment so I think that I will leave other thoughts for a later post.  I decided recently to try to write for one hour consistently each week and the best way to continue with that, I believe, is to be vigilant about writing for this time and, to start with, only for this time.  I don’t want to derail my efforts by making this writing time stressful or otherwise unpleasant.  Over time, it is my hope, that the quality of these posts will get more succinct and cogent.  Thanks for reading!</p>
+
+  </article>
+
+  
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+      var disqus_shortname  = 'https-jwdinius-github-io';
+      var disqus_identifier = '/blog/2019/dockerstrangelove';
+      var disqus_title      = "Docker Strangelove";
+      (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  
+
+</div>
+
+      </div>
+    </div>
+
+    <footer>
+
+  <div class="wrapper">
+    &copy; Copyright 2023 Joe Dinius.
+    Powered by <a href="http://jekyllrb.com/" target="_blank">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank">GitHub Pages</a>.
+
+    
+  </div>
+
+</footer>
+
+
+    <!-- Load jQuery -->
+<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+
+<!-- Load Common JS -->
+<script src="https://jwdinius.github.io/assets/js/common.js"></script>
+
+
+
+
+
+<!-- Include custom icon fonts -->
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/fontawesome-all.min.css">
+<link rel="stylesheet" href="https://jwdinius.github.io/assets/css/academicons.min.css">
+
+<!-- Google Analytics -->
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-XXXXXXXXX', 'auto');
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+
+</html>
