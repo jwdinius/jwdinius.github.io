@@ -10,10 +10,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>code | </title>
+    <title>Building the F1TENTH Power Distribution Module (PDM) | </title>
     <meta name="author" content="Joe  Dinius">
-    <meta name="description" content="Welcome to my blog and portfolio site.  My blog posts are usually concise; focusing on  pertinent observations about what I'm working on or what I find interesting.
-">
+    <meta name="description" content="Walkthrough of the buildout of the board; where to order the PCB, what parts to buy, and how to assemble">
     <meta name="keywords" content="robotics, autonomy, applied-math">
 
 
@@ -34,7 +33,7 @@
     <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;">
     
     <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://jwdinius.github.io/blog/tag/code/">
+    <link rel="canonical" href="https://jwdinius.github.io/blog/2023/f110-pdm-board/">
     
     <!-- Dark Mode -->
     
@@ -124,27 +123,85 @@
 
     <!-- Content -->
     <div class="container mt-5">
-      <div class="post">
+      <!-- _layouts/post.html -->
+
+<div class="post">
 
   <header class="post-header">
-    <h1 class="post-title"> <i class="fas fa-hashtag fa-sm"></i> code </h1>
-    <p class="post-description"> an archive of posts with this tag </p>
+    <h1 class="post-title">Building the F1TENTH Power Distribution Module (PDM)</h1>
+    <p class="post-meta">February 25, 2023</p>
+    <p class="post-tags">
+      <a href="/blog/2023"> <i class="fas fa-calendar fa-sm"></i> 2023 </a>
+
+    </p>
   </header>
 
-  <article>
-    <div class="table-responsive">
-      <table class="table table-sm table-borderless">
-        
-        <tr>
-          <th scope="row">Jul 15, 2015</th>
-          <td>
-              <a class="post-link" href="/blog/2015/code/">a post with code</a>
-          </td>
-        </tr>
-      
-      </table>
-    </div>
+  <article class="post-content">
+    <h1 id="notes">Notes</h1>
+
+<ul>
+  <li>Capacitors have polarity - there is an anode (+) and a cathode (-) and you need to make sure to install these components correctly(particularly important for the elecrolytic capacitors).  The anode has a longer lead than the cathode and should be installed in the hole nearest the printed component id (e.g., “C1”); see pic below:</li>
+</ul>
+
+<p><img src="/assets/img/capacitor-polarity.jpg" alt="test-image">
+<a href="https://www.yamanelectronics.com/capacitor-anode-cathode-identification/" rel="external nofollow noopener" target="_blank"><em>Source</em></a></p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li><a href="https://f1tenth.readthedocs.io/en/stable/getting_started/intro.html#doc-build-intro" rel="external nofollow noopener" target="_blank">F1TENTH Project Introduction</a></li>
+  <li><a href="https://f1tenth.org/build.html" rel="external nofollow noopener" target="_blank">Build instructions + Bill-of-Materials (BoM)</a></li>
+  <li><a href="https://oshpark.com/shared_projects/qvIKu3aY" rel="external nofollow noopener" target="_blank">Order PCB (minimum 3)</a></li>
+  <li>
+<a href="https://groups.google.com/g/f1_10/c/GGuCTB-l78Y" rel="external nofollow noopener" target="_blank">Helpful chat thread from Google Group (last updated Oct. 2022)</a>
+    <ul>
+      <li><a href="https://docs.google.com/spreadsheets/d/1tbXGLgL5GAHyR6L9F-SnwSzdjveUt-EyJ4-mb8ZAkkw/edit#gid=718958730" rel="external nofollow noopener" target="_blank">Updated BoM</a></li>
+    </ul>
+  </li>
+</ul>
+
   </article>
+
+
+  
+    
+    <br>
+    <hr>
+    <br>
+    <ul class="list-disc pl-8"></ul>
+
+    <!-- Adds related posts to the end of an article -->
+    <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2>
+    <p class="mb-2">Here are some more articles you might like to read next:</p>
+  
+
+  <li class="my-2">
+    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2022/displaying-external-posts-on-your-al-folio-blog/">Displaying External Posts on Your al-folio Blog</a>
+  </li>
+
+  
+
+  <li class="my-2">
+    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2021/goodbye-2021/">So long, 2021</a>
+  </li>
+
+  
+
+  <li class="my-2">
+    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2021/max-clique/">Finding Point Cloud Correspondences Using Undirected Graphs</a>
+  </li>
+
+  
+
+  <li class="my-2">
+    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2020/lookalike/">Celebrity Lookalike Project Writeup</a>
+  </li>
+
+  
+
+  <li class="my-2">
+    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2020/virtualmakeup/">Virtual Makeup Project Writeup</a>
+  </li>
 
 </div>
 
