@@ -1,12 +1,14 @@
 github_users:
-  - torvalds
-  - alshedivat
+  - jwdinius
 
 github_repos:
-  - alshedivat/al-folio
-  - twbs/bootstrap
-  - jekyll/jekyll
-  - jquery/jquery
-  - FortAwesome/Font-Awesome
-  - jpswalsh/academicons
-  - mathjax/MathJax
+  - AtsushiSakai/PythonRobotics
+  - mlpack/ensmallen
+  - relativty/Relativty
+  - OSSDC/OSSDC-Hacking-Book
+  - jwdinius/prince-computer-vision
+  - jwdinius/extended-object-tracking
+  - jwdinius/friedland-csd-solutions
+  - jwdinius/kalman
+  - jwdinius/nmsac
+  - jwdinius/yolov4-mask-detector

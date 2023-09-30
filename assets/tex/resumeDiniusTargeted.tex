@@ -1,0 +1,633 @@
+% (c) 2002 Matthew Boedicker <mboedick@mboedick.org> (original author) http://mboedick.org
+% (c) 2003-2007 David J. Grant <davidgrant-at-gmail.com> http://www.davidgrant.ca
+% (c) 2008-2011 Nathaniel Johnston <nathaniel@nathanieljohnston.com> http://www.nathanieljohnston.com
+%
+%This work is licensed under the Creative Commons Attribution-Noncommercial-Share Alike 2.5 License. To view a copy of this license, visit http://creativecommons.org/licenses/by-nc-sa/2.5/ or send a letter to Creative Commons, 543 Howard Street, 5th Floor, San Francisco, California, 94105, USA.
+
+\documentclass[letterpaper,18pt]{article}
+\newlength{\outerbordwidth}
+\pagestyle{empty}
+\raggedbottom
+\raggedright
+%\usepackage[svgnames]{xcolor}
+\usepackage{xcolor}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{framed}
+\usepackage{hyperref}
+\usepackage{tocloft}
+\usepackage{fancyhdr}
+\usepackage{textcomp}
+
+%-----------------------------------------------------------
+%Edit these values as you see fit
+
+\setlength{\outerbordwidth}{3pt}  % Width of border outside of title bars
+\definecolor{shadecolor}{gray}{0.75}  % Outer background color of title bars (0 = black, 1 = white)
+\definecolor{shadecolorB}{gray}{0.93}  % Inner background color of title bars
+
+
+%-----------------------------------------------------------
+%Margin setup
+
+\setlength{\evensidemargin}{-0.25in}
+\setlength{\headheight}{0in}
+\setlength{\headsep}{0in}
+\setlength{\oddsidemargin}{-0.25in}
+\setlength{\paperheight}{11in}
+\setlength{\paperwidth}{8.5in}
+\setlength{\tabcolsep}{0in}
+\setlength{\textheight}{9.5in}
+\setlength{\textwidth}{7in}
+\setlength{\topmargin}{-0.3in}
+\setlength{\topskip}{0in}
+\setlength{\voffset}{0.1in}
+
+
+%-----------------------------------------------------------
+%Custom commands
+\newcommand{\resitem}[1]{\item #1 \vspace{-2pt}}
+\newcommand{\resheading}[1]{\vspace{8pt}
+  \parbox{\textwidth}{\setlength{\FrameSep}{\fboxsep}
+    \begin{shaded}
+\setlength{\fboxsep}{0pt}\framebox[\textwidth][l]{\setlength{\fboxsep}{4pt}\fcolorbox{shadecolorB}{shadecolorB}{\textbf{\sffamily{\mbox{~}\makebox[6.762in][l]{\large #1} \vphantom{p\^{E}}}}}}
+    \end{shaded}
+  }\vspace{-5pt}
+}
+\newcommand{\ressubheading}[4]{
+\begin{tabular*}{6.5in}{l@{\cftdotfill{\cftsecdotsep}\extracolsep{\fill}}r}
+		\textbf{#1} & #2 \\
+		\textit{#3} & #4 \\
+\end{tabular*}\vspace{-6pt}}
+
+\newcommand{\headerrow}[2]{%
+  \hspace*{-\labelsep}%
+  \begin{tabular*}{\dimexpr\linewidth+\labelsep}{@{\extracolsep{\fill}}lr@{}}
+    #1 &
+    #2 \\
+  \end{tabular*}%
+}
+
+\pagestyle{fancy}
+\fancyfoot{}
+\rfoot{\thepage \ of\ 4}
+\lfoot{Joe Dinius, PhD}
+\cfoot{\url{https://jwdinius.github.io}}
+%-----------------------------------------------------------
+
+
+\begin{document}
+
+\begin{tabular*}{7in}{l@{\extracolsep{\fill}}r}
+\textbf{\Large Joe Dinius, PhD} &  \\
+Thousand Oaks, CA & \href{mailto:josephwdinius@gmail.com}{josephwdinius@gmail.com}  \\
+520.904.8244 & \url{https://jwdinius.github.io}\\
+\end{tabular*}
+\\
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Summary Statement}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\indent I am an experienced lead robotics engineer seeking technical leadership opportunities in the design, development, and deployment of autonomous systems in the wild.  I am a fast learner, a motivating force, and a proven technical leader in the fields of sensing and estimation, path planning, localization, and computer vision.  On the technical side, I enjoy solving hard problems with creativity; employing solutions that others might not consider.  On the leadership side, I focus on the cultivation of safe spaces for interpersonal communication at all levels, making expectations plainly known, and on identifying and providing any support necessary for optimizing team output.  In everything I do, I strive to communicate clearly, candidly, and respectfully.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Professional Experience}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}[label={},leftmargin=*,noitemsep]
+\item
+	\headerrow{\textbf{OffWorld, Inc.}}{Altadena, CA}
+    \headerrow{\emph{Head of Robotics Software}}{May 2022 -- Present}
+	{\small
+	\begin{itemize}[noitemsep]
+        \resitem{Leading software development efforts at an early-stage mining technology startup}
+        \begin{itemize}[noitemsep]
+                \resitem{Maintain 1:1 ratio (in terms of time) between technical contribution and functional management}
+                \resitem{Responsible for managing a diverse team of roboticists, software developers, test engineers and UI/UX designers}
+                \resitem{Lead software developer on \href{https://www.offworld.ai/surveyor}{Surveyor product MVP}.  Responsibilities include:}
+                \begin{itemize}[noitemsep]
+                    \resitem{\textbf{Software QA; including build management, automated software deployment, and testing}}
+                    \resitem{\textbf{Software systems architecture}}
+                    \resitem{\textbf{Core software development; including teleoperation control, serving heterogeneous streaming data, and plugin service development}}
+                    \resitem{\textbf{Operator UI/UX development for UGVs}}
+                    \resitem{\textbf{Serving as Scrum Master in an Agile development workflow}}
+                \end{itemize}
+        \end{itemize}
+	\end{itemize}
+	}
+\item
+	\headerrow{\textbf{AeroVironment, Inc.}}{Simi Valley, CA}
+    \headerrow{\emph{Manager -- Applied Autonomy}}{March 2020 -- May 2022}
+	{\small
+	\begin{itemize}[noitemsep]
+        \resitem{Transitioned to leadership role shortly after joining the company}
+        \begin{itemize}[noitemsep]
+                \resitem{Maintained 2:1 ratio between technical contribution and functional management}
+                \resitem{Was responsible for managing upwards of 15 full-time engineers and 3 contract employees}
+                \resitem{Developed learning initiatives to grow in-house expertise in autonomy; such areas include:}
+                \begin{itemize}[noitemsep]
+                    \resitem{\textbf{Visual object detection, classification, localization, \& tracking (DCLT)}}
+                    \resitem{\textbf{Mission design}}
+                    \resitem{\textbf{Visual navigation; including visual inertial odometry (VIO) and simultaneous localization \& mapping (VSLAM)}}
+                \end{itemize}
+                \resitem{Initiator and champion of several internal process improvement efforts:}
+                \begin{itemize}[noitemsep]
+                    \resitem{\textbf{Decreasing complexity and cost by converting legacy configuration management \& continuous integration (CM/CI) pipelines using Subversion + Atlassian suite (i.e. Fisheye/Crucible/Bamboo) to Gitlab}}
+                    \resitem{\textbf{Increasing scalability and portability of applications using Docker and a distributed services system architecture}}
+                \end{itemize}
+                \resitem{Technical lead (upwards of 7 team members) of autonomy R \& D projects for fixed-wing and multirotor aircraft.  Responsibilities include:}
+                \begin{itemize}[noitemsep]
+                    \resitem{\textbf{Program management}}
+                    \resitem{\textbf{Software systems architecture}}
+                    \resitem{\textbf{Visual navigation algorithm development}}
+                    \resitem{\textbf{3D mapping using Structure-from-Motion (SfM)}}
+                    \resitem{\textbf{Operator UI/UX development for UAVs}}
+                \end{itemize}
+        \end{itemize}
+	\end{itemize}
+	}
+    \headerrow{\emph{Senior Staff Engineer -- Applied Autonomy}}{December 2019 -- March 2020}
+	{\small
+	\begin{itemize}[noitemsep]
+        \resitem{Developed robust visual navigation capability for autonomous aerial vehicles with multispectral monochromatic imagers for indoor and outdoor environments}
+	\end{itemize}
+	}
+    \newpage
+\item
+    \headerrow{\textbf{UBTECH Robotics North American R\&D Center}}{Los Angeles, CA}
+        \headerrow{\emph{Senior Research Engineer -- Navigation \& Control}}{April 2019 -- December 2019}
+	{\small
+	\begin{itemize}[noitemsep]
+        \resitem{Was the first team hire for, and a key member in building, the software team}
+        \begin{itemize}[noitemsep]
+                \resitem{Developed interview process for software candidates, including coding challenge component and skill set questions for computer vision, navigation, and general software candidate interviews}
+                \resitem{Conducted $\sim$90\% of interviews initially, including technical panel interviews for hardware team candidates, but was able to delegate much of this responsibility as the team grew.}
+                \resitem{Grew the team from 1 (me) to 12+ in 8 months.  Total team, including hardware and industrial design, grew to 35+}
+        \end{itemize}
+        \resitem{Led software development for initial vehicle prototype}
+        \begin{itemize}[noitemsep]
+                \resitem{Developed SLAM algorithms for operation in dynamic indoor environments using RGB-D cameras and 2d lidar}
+                \resitem{Worked closely with hardware design team to do sensor coverage analyses and hardware downselect in early design stages}
+                \resitem{Led upwards of 5 individuals working on an autonomously navigating mobile platform.  Starting from concept-only (no drawings), demonstrated a fully-functional minimum viable product (MVP) in $\sim$6 months}
+		        \resitem{Created decentralized application infrastructure using Docker and ROS to streamline parallel development efforts within team}
+        \end{itemize}
+	\end{itemize}
+	}
+\item
+	\headerrow{\textbf{inVia Robotics}}{Westlake Village, CA}
+	\headerrow{\emph{Staff Research Scientist -- Perception \& Controls}}{December 2017 -- April 2019}
+	{\small
+	\begin{itemize}[noitemsep]
+		\resitem{Responsible for development of control, navigation, and localization algorithms for wheeled mobile robots deployed in a warehouse automation application}
+        \begin{itemize}[noitemsep]
+                \resitem{Increased coarse navigation speed 2.5x in 2 months with a novel method}
+                \resitem{Increased navigation accuracy on precision maneuvers by 5x while simultaneously increasing speed by 2x; \textit{reduced inventory drops due to navigation failures} $>$5x}
+        \end{itemize}
+%newpage coming
+%\newpage
+%newpage ending
+		\resitem{Introduced processes that greatly increased system robustness}
+        \begin{itemize}[noitemsep]
+                \resitem{Integrated obstacle avoidance, both static and dynamic, into robot control algorithm}
+                \resitem{Built automated test procedure, including physical setup, for evaluating navigation performance (both control and localization accuracy) on precision approaches}
+                \resitem{Statistical experimental design for controller tuning based on Latin Hypercube sampling (coarse resolution) and Full-Factorial design (fine resolution)}
+                \resitem{Refactored trajectory planner, which resulted in $>$20x \textit{reduction in network traffic and memory consumption}, and added a scalable automated test suite}
+                \resitem{Safe and automatic recovery of robots after throwing and logging exceptions}
+                \resitem{Automatic wheel calibration procedure during final robot manufacturing checkout led to \textit{significant reduction in path-related errors observed at customer deployments}}
+        \end{itemize}
+        \resitem{Worked with Operations team to monitor and correct issues while running the system live at customer deployments}  
+	\end{itemize}
+	}
+
+\item
+	\headerrow{\textbf{Walt Disney Imagineering R \& D}}{Glendale, CA}
+	\headerrow{\emph{Senior R \& D Imagineer -- Contract Position}}{July 2017 -- October 2017}
+	{\small
+	\begin{itemize}[noitemsep]
+		\resitem{Responsible for developing scene segmentation and state estimation algorithms for multiple object tracking using 2D laser rangefinders}
+        \resitem{Created a simple multi-vehicle collision-free path planner using the Hybrid A* algorithm}
+	\end{itemize}
+	}
+\item
+	\headerrow{\textbf{Ford Motor Company}}{Dearborn, MI}
+	\headerrow{\emph{Senior Research Engineer}}{December 2015 -- June 2017}
+	{\small
+	\begin{itemize}[noitemsep]
+		\resitem{Responsible for conceptualizing and interpreting advanced algorithms for multiple object tracking for the Next Generation Vehicle (NGV), including state estimation, data fusion, and data association}
+	\end{itemize}
+        }
+\item
+	\headerrow{\textbf{Raytheon Missile Systems}}{Tucson, AZ}
+	\headerrow{\emph{Senior Systems Engineer II}}{June 2006 -- December 2015}
+	{\small
+	\begin{itemize}[noitemsep]
+     \resitem{Led small teams, composed of 2-5 individuals, in simulation, control, and signal/image processing disciplines}
+        \begin{itemize}[noitemsep]
+                \resitem{Worked with team members to define performance targets for yearly reviews and contributed to performance reports}
+                \resitem{Worked with team members and their functional management to define performance improvement plans (PIP) when performance was unsatisfactory; worked with team members to increase likelihood of successfully executing the PIP}
+        \end{itemize}
+	 \resitem{Directed analyses of flight test failures, operational safety, requirements development, and system performance}
+      \resitem{Designed and developed simulation architectures for new product development efforts (DARPA/MDA/IR\&D)}
+	  \resitem{Developed guidance, navigation, and control (GNC) algorithms in simulation, Computer-in-the-Loop (CiL) and Hardware-in-the-Loop (HiL) environments}
+	\end{itemize}
+	}
+\end{itemize}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{\href{https://jwdinius.github.io/projects}{Sample Projects}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}[label={},leftmargin=*,noitemsep]
+\item
+        \headerrow{\textbf{Real-Time Face Mask Detection}}{Dec 2020}
+        {\small
+	\begin{itemize}[noitemsep]
+        \resitem{Trained YOLOv4 single-stage object detector on a custom dataset using DarkNet framework}
+        \resitem{Developed multi-threaded Linux application (in C++) using OpenCV's Deep Neural Network (DNN) API}
+        \resitem{Achieved real-time (input frame-rate $\sim$= output frame-rate) inference using GPU acceleration}
+        \resitem{\href{https://jwdinius.github.io/projects/mask_detector/}{Project Writeup}, \href{https://github.com/jwdinius/yolov4-mask-detector}{Github}.  Technologies Used: C++(14), DarkNet, OpenCV, docker}
+	\end{itemize}
+	}
+\item
+	\headerrow{\textbf{Pose Error Compensation Using Imprecise Visual Landmarks}}{March 2019}
+	{\small
+	\begin{itemize}[noitemsep]
+            \resitem{Created a simple SLAM-inspired algorithm to increase precision navigation terminal accuracy 5x.  \textit{The net effect was a} $>$5x \textit{decrease in inventory drops.}}
+		\resitem{Visual landmarks imprecisely placed on stationary warehouse objects were used to create stable, robot-centric map markers for estimating accumulated robot localization error.}
+		\resitem{Technologies Used: Python, OpenCV / AprilTags, Redis}
+	\end{itemize}
+	}
+\item
+	\headerrow{\textbf{Extended Object Tracking}}{April 2018}
+	{\small
+	\begin{itemize}[noitemsep]
+		\resitem{Developed a performant representation of a cutting-edge algorithm for extended object tracking using elliptical primitive shapes}
+		\resitem{Built a simulation and multi-threaded infrastructure layer for testing the algorithm in a representative environment}
+		\resitem{\href{https://jwdinius.github.io/projects/eot/}{Project Writeup}, \href{https://github.com/jwdinius/extended-object-tracking}{Github}.  Technologies Used: C++, JUCE}
+	\end{itemize}
+	}
+\end{itemize}
+
+%newpage coming
+%\newpage
+%newpage ending
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Technical Skills}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{tabular}{ll}
+   OS &: Windows, OS X, Ubuntu\\
+    Languages &: Modern C++ (11/14/17 standards), Python, JavaScript, HTML, CSS \\
+    Hardware &: x86, Raspberry Pi (2/3/4), NVIDIA Jetson (TX1/2, Xavier NX), NVIDIA GPU, \\
+    & \ Xilinx Zynq UltraScale+ MPSoC \\
+    Software \ &: Eigen, Armadillo, Scikit-image, Scikit-learn, OpenCV, Fast-DDS, Git(Lab \& Hub), \\
+    & \ gdb(pdb), cmake, numpy, scipy, pandas, \LaTeX , Boost, IPOPT, ROS(1 \textit{and} 2), fastai, PyTorch, docker, \\
+    & \ Jira, Confluence, Xilinx Vivado/Vitis, Petalinux, CircleCI, Coveralls \\
+    Other &: Kalman filtering, particle filtering, SLAM, computer vision, signal processing, optimization, \\
+    & \ machine learning (including deep learning), state-space control design, optimal control, \\
+    & \ design-of-experiments (DoE), data exploration \& visualization, program management, software \\
+    & \ systems architecture
+\end{tabular} \\
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Selected Publications \& Patents}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}
+\item \textbf{Dinius, J.W.}, B.K.~Pennington, R.C.~Voorhies, L.~Elazary, D.F~Parks~II.
+    \emph{U.S. Patent No. 10946518}, Spatiotemporal controller for controlling robot operation, 16 Mar, 2021
+\item Sakai, A., D.~Ingram, \textbf{J.~Dinius}, K.~Chawla, A.~Raffin, A.~Paques.
+	PythonRobotics: a Python code collection of robotics algorithms. \emph{arXiv e-print: submitted 31 Aug, 2018}.  Available: \url{https://arxiv.org/abs/1808.10703}
+\item \textbf{Dinius, J.}, R.~Furfaro, F. Topputo, and S.~Selnick.
+				Near Optimal Feedback Guidance Design and the Planar Restricted
+				Three-Body Problem.  In: \emph{Proceedings of the AAS 24th Spaceflight Mechanics Meeting},
+				January 26--30, 2014.
+\item \textbf{Dinius, J.}, Adv. J.~Lega.
+	Dynamical Properties of a Generalized Collision Rule for Multi-Particle Systems.  \emph{Doctoral Dissertation}.  Available: \url{http://arizona.openrepository.com/arizona/handle/10150/315858}.
+\end{itemize}
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Education}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}[leftmargin=*,noitemsep,label={}]
+\item \headerrow{\textbf{University of Arizona}, MS/PhD Applied Mathematics}{}
+{\small
+ 	\begin{itemize}
+		\resitem{Raytheon Advanced Scholar's Fellowship}
+	\end{itemize}
+}
+\item \headerrow{\textbf{Northern Arizona University}, BS Mathematics and Physics}{}
+{\small
+ 	\begin{itemize}
+		\resitem{University Honors Program}
+		\resitem{Dean's List}
+	\end{itemize}
+}
+\end{itemize}
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\resheading{Related Activities}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}[label={},leftmargin=*,noitemsep]
+\item
+	\headerrow{\textbf{Open-Source Software Projects}}{}
+	\headerrow{\emph{Contributor}}{2017 -- Present}
+	{\small
+	I regularly contribute to open-source projects, some of which include
+	\begin{itemize}[noitemsep]
+        \resitem{\href{https://github.com/jwdinius/nmsac}{Non-Minimal Sampling Consensus (NMSAC)} - \textit{main contributor}}
+		\resitem{\href{https://github.com/OSSDC}{Open Source Self Driving Car Initiative (OSSDC)}}
+		\resitem{\href{https://github.com/AtsushiSakai/PythonRobotics}{PythonRobotics}}
+	\end{itemize}
+	Check out my \href{https://github.com/jwdinius}{GitHub} for more details.
+	}
+\item
+	\headerrow{\textbf{Student Engineering Projects}}{}
+	\headerrow{\emph{Mentor}}{2014 -- Present}
+	{\small
+	After finishing my doctorate, I regularly serve as mentor on different student-led engineering projects, including
+	\begin{itemize}[noitemsep]
+		\resitem{Udacity Self-Driving Car Nanodegree Session Mentor -- 2019}
+        %\begin{itemize}[noitemsep]
+        %    \resitem{Led class discussions for session comprised of 12 students}
+        %    \resitem{Ran weekly live video webinars to cover course modules more in-depth}
+        %    \resitem{Conducted weekly one-on-one discussions with students to address individual concerns}
+	    %\end{itemize}
+        \resitem{Community Helpers in Mathematics, Engineering, and Science (CHiMES) -- (2014-2015)}
+	    %\begin{itemize}[noitemsep]
+        %    \resitem{Partnership with University of Arizona College of Engineering and local high schools}
+        %    \resitem{Served as mentor, along with two colleagues, for student team from Canyon Del Oro High School in Oro Valley, AZ}
+        %    \resitem{Helped students to scope the project definition and requirements development for a community-enriching engineering project}
+	    %\end{itemize}
+	\end{itemize}
+	}
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\resheading{Awards \& Honors}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%\vspace{-2pt}
+	%\begin{center}\begin{tabular*}{6.6in}{l@{\extracolsep{\fill}}r}
+		%\multicolumn{2}{c}{Raytheon Advanced Scholars Program Fellowship (\$12 000) \cftdotfill{\cftdotsep} 2007 -- 2011}\\
+		%\multicolumn{2}{c}{Mildred Fenton and Carrol Lane Scholarship (\$250) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+		%\multicolumn{2}{c}{Raytheon Scholarship (\$1 900) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+		%\multicolumn{2}{c}{ Karan and Terence Hall Undergraduate Mathematics Scholarship (\$1 440) \cftdotfill{\cftdotsep}2005}\\
+		%\multicolumn{2}{c}{Physics and Astronomy Chair's Scholarship (\$500) \cftdotfill{\cftdotsep}2004}\\
+		%\multicolumn{2}{c}{Vesto M. Slipher Memorial Physics and Astronomy Junior Scholar Award (\$305) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+		%\multicolumn{2}{c}{James and Susan Casebeer Scholarship (\$580) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+		%\multicolumn{2}{c}{NAU Centennial Scholarship (\$1 000) \cftdotfill{\cftdotsep}2001 -- 2005}\\
+		%\vphantom{E}
+%\end{tabular*}
+%\end{center}\vspace*{-16pt}
+%\vspace{-2pt}
+%	\begin{center}\begin{tabular*}{6.6in}{l@{\extracolsep{\fill}}r}
+%		\multicolumn{2}{c}{Raytheon Missile Systems (RMS) Invention Convention: Finalist \cftdotfill{\cftdotsep} 2013} \\
+%		\multicolumn{2}{c}{RMS Team Achievement Award- HuMMinGBird Design Team \cftdotfill{\cftdotsep} 2013} \\
+%		\multicolumn{2}{c}{Raytheon Advanced Scholars Program Fellowship \cftdotfill{\cftdotsep} 2007 -- 2014} \\
+%		\multicolumn{2}{c}{RMS Team Achievement Award- SM3 Block IIB Simulation Delivery \cftdotfill{\cftdotsep} 2012} \\
+%		\multicolumn{2}{c}{RMS Team Achievement Award- SM3 Block IIA ATK DACS Risk Reduction Effort \cftdotfill{\cftdotsep} 2011} \\
+%		\multicolumn{2}{c}{RMS Individual Achievement Awards- ESSM Composite Radome Analyses \cftdotfill{\cftdotsep} 2007-2008} \\
+%		%\multicolumn{2}{c}{Mildred Fenton and Carrol Lane Scholarship (\$250) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+%		%\multicolumn{2}{c}{Raytheon Scholarship (\$1 900) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+%		%\multicolumn{2}{c}{ Karan and Terence Hall Undergraduate Mathematics Scholarship (\$1 440) \cftdotfill{\cftdotsep}2005}\\
+%		%\multicolumn{2}{c}{Physics and Astronomy Chair's Scholarship (\$500) \cftdotfill{\cftdotsep}2004}\\
+%		%\multicolumn{2}{c}{Vesto M. Slipher Memorial Physics and Astronomy Junior Scholar Award (\$305) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+%		%\multicolumn{2}{c}{James and Susan Casebeer Scholarship (\$580) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+%		%\multicolumn{2}{c}{NAU Centennial Scholarship (\$1 000) \cftdotfill{\cftdotsep}2001 -- 2005}\\
+%		\vphantom{E}
+%\end{tabular*}
+%\end{center}\vspace*{-16pt}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Academic Visits}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item 
+%%	\ressubheading{University of Calgary}{Calgary, AB}{Institute for Quantum Information Science}{Feb. 14 -- 18, 2011}
+%%
+%%\item 
+%%	\ressubheading{University of Bristol}{Bristol, UK}{Quantum Computation and Information Group}{May 10 -- June 18, 2010}
+%%
+%%\item 
+%%	\ressubheading{University of Houston}{Houston, TX}{Department of Mathematics}{Sept. 1 -- Dec. 12, 2008}
+%%\end{itemize}
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Teaching Experience}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item 
+%	%\ressubheading{Introductory Mechanics (PHY151L)}{Northern Arizona University}{Teaching Assistant}{Spring 2006}
+%	%\begin{itemize}
+%		%\resitem{Ran weekly laboratory sessions affirming lessons learned in lecture.}
+%		%\resitem{Responsible for apparatus setup, lecturing and grading laboratory notebooks.}
+%	%\end{itemize}
+%%
+%%\end{itemize}
+%
+%%\item
+%%	N. Johnston and E. St\o rmer, {\it Mapping Cones are Operator Systems}. Preprint (2011). E-print: arXiv:1102.2012 [math.OA]
+%%
+%%\item
+%%	N. Johnston and D. W. Kribs, {\it Quantum Gate Fidelity in Terms of Choi Matrices}. Preprint (2011). E-print: arXiv:1102.0948 [quant-ph]
+%%
+%%\item
+%%	N. Johnston, {\it Characterizing Operations Preserving Separability Measures via Linear Preserver Problems}. To appear in Linear and Multilinear Algebra (2011). E-print: arXiv:1008.3633 [quant-ph]
+%%
+%%\item
+%%	N. Johnston, D. W. Kribs, V. I. Paulsen, and R. Pereira, {\it Minimal and Maximal Operator Spaces and Operator Systems in Entanglement Theory}. Journal of Functional Analysis {\bf 260} 8, 2407--2423 (2011).
+%%
+%%\item
+%%	N. Johnston and D. W. Kribs, {\it A Family of Norms With Applications in Quantum Information Theory II}. Quantum Information \& Computation {\bf 11} 1 \& 2, 104--123 (2011).
+%%
+%%\item
+%%	N. Johnston and D. W. Kribs, {\it Generalized Multiplicative Domains and Quantum Error Correction}. Proceedings of the American Mathematical Society {\bf 139}, 627--639 (2011). 
+%%
+%%\item	
+%%	N. Johnston, {\it  The B36/S125 ``2 $\times$ 2'' Life-Like Cellular Automaton}. In {\it Game of Life Cellular Automata} chapter 7, A. Adamatzky, Springer-UK, 99--114 (2010).
+%%
+%%\item N. Johnston and D. W. Kribs, {\it Schmidt Operator Norms and Entanglement Theory}. Fourth International Conference on Quantum, Nano and Micro Technologies, 92--95 (2010).
+%%	\vspace{-0.1in}\begin{itemize}
+%%		\item[--] Selected as one of the best papers of the conference.
+%%	\end{itemize}
+%%
+%%\item
+%%	N. Johnston and D. W. Kribs, {\it A Family of Norms With Applications in Quantum Information Theory}. Journal of Mathematical Physics {\bf 51}, 082202 (2010).
+%%	\vspace{-0.1in}\begin{itemize}
+%%		\item[--] Selected for the Virtual Journal of Quantum Information.
+%%	\end{itemize}
+%%
+%%\item
+%%	M.-D. Choi, N. Johnston, and D. W. Kribs, {\it The Multiplicative Domain in Quantum Error Correction}. Journal of Physics A: Mathematical and Theoretical {\bf 42}, 245303 (2009).
+%%
+%%\item
+%%	N. Johnston, D. W. Kribs, and V. I. Paulsen, {\it Computing Stabilized Norms for Quantum Operations}. Quantum Information \& Computation {\bf 9} 1 \& 2, 16--35 (2009).
+%%
+%%\item
+%%	N. Johnston, D. W. Kribs, and C.-W. Teng, {\it An Operator Algebraic Formulation of the Stabilizer Formalism for Quantum Error Correction}. Acta Applicandae {\bf 108} 3, 687--696 (2009).
+%
+%%\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Presentations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item
+%	%{\it Lyapunov Exponents and Modes for Hard Disk Systems}
+%	%\begin{itemize}
+%	%\item Program in Applied Mathematics Modeling, Computation, Nonlinearity, Randomness, and Waves Seminar -- University of Arizona, Tucson, AZ (March 1, 2012).
+%		%\item Program in Applied Mathematics Research Tutorial Group (RTG) -- University of Arizona, Tucson, Arizona (December 18, 2009).
+%	%\end{itemize}
+%%
+%%\item
+%	%{\it Designing an Academic Website}
+%	%\begin{itemize}
+%		%\item Program in Applied Mathematics SWIG Seminar -- University of Arizona, Tucson, AZ (February 3, 2012).
+%	%\end{itemize}
+%%\item
+%	%{\it Lyapunov Exponents and Dynamical Systems}
+%	%\begin{itemize}
+%		%\item Program in Applied Mathematics Brown Bag Seminar -- University of Arizona, Tucson, AZ (December 2, 2011).
+%	%\end{itemize}
+%%
+%%\item
+%	%{\it Agent-Based Simulation}
+%	%\begin{itemize}
+%		%\item Program in Applied Mathematics Brown Bag Seminar -- University of Arizona, Tucson, AZ (October 23, 2009).
+%	%\end{itemize}
+%%
+%%\item
+%	%{\it Low Reynolds Number Swimming}
+%	%\begin{itemize}
+%		%\item Program in Applied Mathematics Third Semester Term Paper Presentation -- University of Arizona, Tucson, AZ (May 15, 2009).
+%	%\end{itemize}
+%%
+%%\item
+%%{\it Phase Retrieval Algorithms and the TIE}
+%	%\begin{itemize}
+%		%\item Department of Mathematics Research Experience for Undergraduates (REU) Seminar -- University of Illinois, Urbana-Champaign, Urbana, IL (August 4, 2005).
+%	%\end{itemize}
+%%
+%%\item
+%	%{\it Reaction Mechanisms of Astrophysical Ices Under X-ray Bombardment}
+%	%\begin{itemize}
+%		%\item APS Four Corners Meeting Poster Session -- University of New Mexico, Albuquerque, NM (October 15-16, 2004).
+%		%\item NASA Arizona Space Grant Symposium -- Arizona State University, Tempe, AZ \\ (April 21, 2005).
+%	%\end{itemize}
+%%\end{itemize}
+%%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Participation in Workshops and Conferences}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item
+%	%\ressubheading{American Physical Society, Four Corners Section Fall Meeting}{Albuquerque, NM}{University of New Mexico}{October 15 -- 16, 2004}
+%%\item
+%	%\ressubheading{NASA Arizona Space Grant Symposium}{Tempe, AZ}{Arizona State University}{April 21, 2005}
+%%\end{itemize}
+%%
+%%\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Other Research Experience}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item
+%	%\ressubheading{Mathematics Department REU Internship}{University of Illinois, Urbana-Champaign}{Phase Retrieval}{June 2005 -- August 2005}
+%	%\begin{itemize}
+%		%\resitem{Investigated algebraic approaches to phase retrieval problems using the transport-of-intensity equation (TIE).}
+%	%\end{itemize}
+%%
+%%\item
+%	%\ressubheading{NAU NASA Undergraduate Space Grant}{Northern Arizona University}{X-ray Irradiation of Photoprocessed Ices}{August  2004 -- May 2005}
+%	%\begin{itemize}
+%		%\resitem{Investigated chemical evolution of photoprocessed molecular ices undergoing X-ray irradiation.}
+%	%\end{itemize}
+%%\end{itemize}
+%%
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\resheading{Academic Service and Contributions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%\begin{itemize}
+%%\item
+%	%Tutored mathematics and physics at the NAU Learning Assistance Center \\
+%	%{\em January 2002 -- May 2004}
+%%
+%%\item 
+%	%Student member of the NAU chapter of the Society of Physics Students (SPS) \\
+%	%{\em August 2003 -- December 2005}
+%%\end{itemize}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\resheading{Technical Skills}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{itemize}
+%\item Analytical
+%	\begin{itemize}
+%		\resitem{Numerical linear algebra, probability, statistical analysis, optimal estimation theory, mathematical analysis, convex optimization, machine learning (linear/logistic regression classification, support vector machines, decision trees, neural networks), automatic target recognition and tracking, image processing}
+%	\end{itemize}
+%
+%\item
+%	Programming Languages
+%	\begin{itemize}
+%		\resitem{C/C++, Java, Python, Fortran, CUDA C, R, Matlab}
+%	\end{itemize}
+%
+%\item
+%	Specialized Software
+%	\begin{itemize}
+%		\resitem{Matlab/Simulink, Octave, Scikit, Numpy, Scipy, Jupyter/IPython, DRAKE, BLAS/LAPACK, MAGMA, OpenCV, Tortoise/Subversion, Microsoft Office, GDB/Totalview/DDD, RStudio, Visual Studio, Xcode, CMSynergy, Git}
+%	\end{itemize}
+%
+%\item
+%	Hardware/Architectures
+%	\begin{itemize}
+%		\resitem{Linux/Unix (C-shell, bash-shell), GPU (CUDA), Mac OS X, Windows}
+%	\end{itemize}
+%	
+%\item
+%	Markup Languages
+%	\begin{itemize}
+%		\resitem{CSS, \LaTeX, (X)HTML}
+%	\end{itemize}
+%	
+%\end{itemize}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\resheading{Professional Affiliations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\vspace{-2pt}
+%	\begin{center}\begin{tabular*}{6.6in}{l@{\extracolsep{\fill}}r}
+%		\multicolumn{2}{c}{Institute of Electrical and Electronics Engineers (IEEE) \cftdotfill{\cftdotsep} 2015--present} \\
+%		\multicolumn{2}{c}{Society for Industrial and Applied Mathematics (SIAM) \cftdotfill{\cftdotsep} 2011--present} \\
+%		\multicolumn{2}{c}{American Physical Society (APS) \cftdotfill{\cftdotsep} 2002--2006} \\
+%%		\multicolumn{2}{c}{RMS Team Achievement Award- HuMMinGBird Design Team \cftdotfill{\cftdotsep} 2013} \\
+%%		\multicolumn{2}{c}{Raytheon Advanced Scholars Program Fellowship \cftdotfill{\cftdotsep} 2007 -- 2014} \\
+%%		\multicolumn{2}{c}{RMS Team Achievement Award- SM3 Block IIB Simulation Delivery \cftdotfill{\cftdotsep} 2012} \\
+%%		\multicolumn{2}{c}{RMS Team Achievement Award- SM3 Block IIA ATK DACS Risk Reduction Effort \cftdotfill{\cftdotsep} 2011} \\
+%%		\multicolumn{2}{c}{RMS Individual Achievement Awards- ESSM Composite Radome Analyses \cftdotfill{\cftdotsep} 2007-2008} \\
+%		%\multicolumn{2}{c}{Mildred Fenton and Carrol Lane Scholarship (\$250) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+%		%\multicolumn{2}{c}{Raytheon Scholarship (\$1 900) \cftdotfill{\cftdotsep}2005 -- 2006}\\
+%		%\multicolumn{2}{c}{ Karan and Terence Hall Undergraduate Mathematics Scholarship (\$1 440) \cftdotfill{\cftdotsep}2005}\\
+%		%\multicolumn{2}{c}{Physics and Astronomy Chair's Scholarship (\$500) \cftdotfill{\cftdotsep}2004}\\
+%		%\multicolumn{2}{c}{Vesto M. Slipher Memorial Physics and Astronomy Junior Scholar Award (\$305) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+%		%\multicolumn{2}{c}{James and Susan Casebeer Scholarship (\$580) \cftdotfill{\cftdotsep}2003 -- 2004}\\
+%		%\multicolumn{2}{c}{NAU Centennial Scholarship (\$1 000) \cftdotfill{\cftdotsep}2001 -- 2005}\\
+%		\vphantom{E}
+%\end{tabular*}
+%\end{center}\vspace*{-16pt}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\resheading{Personal}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\indent I am an avid adventurer; I enjoy cycling and hiking.  I enjoy pursuing activities for personal growth.  I read large amounts of fiction and non-fiction and I have taken, and continue to take, many online open courses through Coursera, edX and Udacity to refine my understanding of emerging areas in technology.  I also enjoy engaging in volunteer activities to raise awareness of opportunities to use science and engineering in academic and professional pursuits; particularly those that can be used to improve local communities.
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\resheading{Other}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{itemize}
+%\item
+%	DoD, DSS Secret Clearance \\
+%	{\em 2006 -- present}
+%\end{itemize}
+\end{document}

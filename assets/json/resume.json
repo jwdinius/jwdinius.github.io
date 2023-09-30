@@ -1,74 +1,116 @@
 {
   "basics": {
-    "name": "Albert Einstein",
-    "label": "Scientist",
+    "name": "Joe Dinius",
+    "label": "Principal Robotics Software Engineer",
     "image": "",
-    "email": "albert@einstein.de",
-    "phone": "(912) 123-4567",
-    "url": "https://alshedivat.github.io/al-folio/",
-    "summary": "A German-born theoretical physicist, widely ranked among the greatest and most influential scientists of all time",
+    "email": "josephwdinius@gmail.com",
+    "phone": "(520) 904-8244",
+    "url": "https://jwdinius.github.io",
+    "summary": "Experienced technical lead and personnel manager in the robotics software industry.",
     "location": {
-      "address": "2712 Broadway St",
-      "postalCode": "CA 94115",
-      "city": "San Francisco",
+      "postalCode": "CA 91360",
+      "city": "Thousand Oaks",
       "countryCode": "US",
       "region": "California"
     },
-    "profiles": [
-      {
-        "network": "Twitter",
-        "username": "AlbertEinstein",
-        "url": "https://twitter.com/AlbertEinstein"
-      }
-    ]
+    "profiles": []
   },
   "work": [
     {
-      "name": "Institute for Advanced Study, Princeton University",
-      "position": "Professor of Theoretical Physics",
-      "url": "https://example.com",
-      "startDate": "1933-01-01",
-      "endDate": "1955-01-01",
-      "summary": "Teaching at Palmer Physical Laboratory (now 302 Frist Campus Center). While not a professor at Princeton, I associated with the physics professors and continued to give lectures on campus.",
+      "name": "AeroVironment, Inc.",
+      "position": "Principal Software Engineer - Autonomy",
+      "url": "https://avinc.com",
+      "startDate": "2023-03-01",
+      "endDate": "",
+      "summary": "Program lead for autonomy software product development and deployment.",
       "highlights": [
-        "Relativity"
+        "Software architecture design",
+        "Automated QA",
+        "ROS 2"
+      ]
+    },
+    {
+      "name": "OffWorld, Inc.",
+      "position": "Head of Robotics Software",
+      "url": "https://example.com",
+      "startDate": "2022-05-01",
+      "endDate": "2023-03-01",
+      "summary": "Lead software and algorithm developer for perception, planning, control, and UI/UX of a new UGV for application in the mining and surveying industries.",
+      "highlights": [
+        "Surround-view camera system",
+        "SLAM",
+        "Obstacle avoidance"
+      ]
+    },
+    {
+      "name": "AeroVironment, Inc.",
+      "position": "Manager - Applied Autonomy",
+      "url": "https://avinc.com",
+      "startDate": "2019-12-01",
+      "endDate": "2022-03-01",
+      "summary": "Personnel manager and technical lead for multiple autonomy programs - IRAD and CRAD.",
+      "highlights": [
+        "ISR mission planning and execution",
+        "Vehicle integration",
+        "Software application design"
       ]
     }
   ],
   "volunteer": [],
   "education": [
     {
-      "institution": "University of Zurich, Zurich, Switzerland",
-      "url": "https://www.uzh.ch/",
-      "area": "Software Development",
-      "studyType": "PhD",
-      "startDate": "1905-01-01",
-      "endDate": "1905-01-01",
-      "score": "",
+      "institution": "University of Arizona",
+      "url": "https://www.arizona.edu",
+      "area": "Applied Mathematics",
+      "studyType": "Ph.D",
+      "startDate": "2007-08-01",
+      "endDate": "2009-12-01",
+      "score": "3.7/4.0",
       "courses": [
-        "Theory of Relativity"
+        "Large-scale Dynamical Systems"
+      ]
+    },
+    {
+      "institution": "University of Arizona",
+      "url": "https://www.arizona.edu",
+      "area": "Applied Mathematics",
+      "studyType": "MS",
+      "startDate": "2007-08-01",
+      "endDate": "2009-12-01",
+      "score": "3.7/4.0",
+      "courses": [
+        "Applied Analysis",
+        "Probability",
+        "Numerical Analysis",
+        "Control Systems Design",
+        "Multi-Agent Simulation"
+      ]
+    },
+    {
+      "institution": "Northern Arizona University",
+      "url": "https://www.nau.edu",
+      "area": "Mathematics and Physics",
+      "studyType": "BS",
+      "startDate": "2001-08-01",
+      "endDate": "2005-12-01",
+      "score": "3.84/4.0",
+      "courses": [
+        "Applied Analysis",
+        "Probability",
+        "Numerical Analysis",
+        "Control Systems Design",
+        "Multi-Agent Simulation"
       ]
     }
   ],
-  "awards": [
-    {
-      "title": "Nobel Prize in Physics",
-      "date": "1921-11-01",
-      "awarder": "Royal Swedish Academy of Sciences",
-      "summary": "The Nobel Prizes are five separate prizes that, according to Alfred Nobel's will of 1895, are awarded to 'those who, during the preceding year, have conferred the greatest benefit to humankind.'"
-    }
-  ],
+  "awards": [],
   "certificates": [],
   "publications": [],
   "skills": [],
   "languages": [
     {
-      "language": "German",
-      "fluency": "Native speaker"
-    },
-    {
       "language": "English",
-      "fluency": "Fluent"
+      "fluency": "Native speaker"
     }
   ],
   "interests": [],
