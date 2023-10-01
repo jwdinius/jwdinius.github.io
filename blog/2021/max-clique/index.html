@@ -1,184 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-
-  <!-- Head -->
-  <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">    <!-- Metadata, OpenGraph and Schema.org -->
-    
-
-    <!-- Standard metadata -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Finding Point Cloud Correspondences Using Undirected Graphs | </title>
-    <meta name="author" content="Joe  Dinius">
-    <meta name="description" content="Using graph-based methods to identify correspondences between point clouds">
-    <meta name="keywords" content="robotics, autonomy, applied-math">
-
-
-    <!-- Bootstrap & MDB -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-DF7Zhf293AJxJNTmh5zhoYYIMs2oXitRfBjY+9L//AY=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous">
-
-    <!-- Fonts & Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.4/css/all.min.css" integrity="sha256-mUZM63G8m73Mcidfrv5E+Y61y7a12O5mW4ezU3bxqW4=" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/academicons@1.9.1/css/academicons.min.css" integrity="sha256-i1+4qU2G2860dGGIOJscdC30s9beBXjFfzjWLjBRsBg=" crossorigin="anonymous">
-    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons">
-
-    <!-- Code Syntax Highlighting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jwarby/jekyll-pygments-themes@master/github.css" media="" id="highlight_theme_light">
-
-    <!-- Styles -->
-    
-    <link rel="shortcut icon" href="data:image/svg+xml,&lt;svg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%20100%20100%22&gt;&lt;text%20y=%22.9em%22%20font-size=%2290%22&gt;%E2%9A%9B%EF%B8%8F&lt;/text&gt;&lt;/svg&gt;">
-    
-    <link rel="stylesheet" href="/assets/css/main.css">
-    <link rel="canonical" href="https://jwdinius.github.io/blog/2021/max-clique/">
-    
-    <!-- Dark Mode -->
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jwarby/jekyll-pygments-themes@master/native.css" media="none" id="highlight_theme_dark">
-
-    <script src="/assets/js/theme.js"></script>
-    <script src="/assets/js/dark_mode.js"></script>
-    
-
-  </head>
-
-  <!-- Body -->
-  <body class="fixed-top-nav ">
-
-    <!-- Header -->
-    <header>
-
-      <!-- Nav Bar -->
-      <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top">
-        <div class="container">
-          <a class="navbar-brand title font-weight-lighter" href="/"></a>
-          <!-- Navbar Toggle -->
-          <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar top-bar"></span>
-            <span class="icon-bar middle-bar"></span>
-            <span class="icon-bar bottom-bar"></span>
-          </button>
-
-          <div class="collapse navbar-collapse text-right" id="navbarNav">
-            <ul class="navbar-nav ml-auto flex-nowrap">
-        <!-- CV link -->
-        <a class="page-link" href="https://jwdinius.github.io/assets/pdf/resumeDiniusTargeted.pdf">resume</a>
-
-              <!-- About -->
-              <li class="nav-item ">
-                <a class="nav-link" href="/"></a>
-              </li>
-              
-              <!-- Blog -->
-              <li class="nav-item active">
-                <a class="nav-link" href="/blog/">Joe's blog<span class="sr-only">(current)</span></a>
-              </li>
-
-              <!-- Other pages -->
-              <li class="nav-item ">
-                <a class="nav-link" href="/projects/">portfolio</a>
-              </li>
-              <li class="nav-item ">
-                <a class="nav-link" href="/repositories/">repositories</a>
-              </li>
-              <li class="nav-item ">
-                <a class="nav-link" href="/cv/">cv</a>
-              </li>
-              <li class="nav-item ">
-                <a class="nav-link" href="/teaching/">teaching</a>
-              </li>
-              <li class="nav-item dropdown ">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">submenus</a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                  <a class="dropdown-item" href="/publications/">publications</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="/projects/">projects</a>
-                </div>
-              </li>
-
-              <!-- Toogle theme mode -->
-              <li class="toggle-container">
-                <button id="light-toggle" title="Change theme">
-                  <i class="fas fa-moon"></i>
-                  <i class="fas fa-sun"></i>
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </nav>
-
-      <!-- Scrolling Progress Bar -->
-      <progress id="progress" value="0">
-        <div class="progress-container">
-          <span class="progress-bar"></span>
-        </div>
-      </progress>
-    </header>
-
-
-    <!-- Content -->
-    <div class="container mt-5">
-      <!-- _layouts/post.html -->
-
-<div class="post">
-
-  <header class="post-header">
-    <h1 class="post-title">Finding Point Cloud Correspondences Using Undirected Graphs</h1>
-    <p class="post-meta">February 20, 2021</p>
-    <p class="post-tags">
-      <a href="/blog/2021"> <i class="fas fa-calendar fa-sm"></i> 2021 </a>
-
-    </p>
-  </header>
-
-  <article class="post-content">
-    <p>In this post, I will discuss an alternate approach to the <a href="http://jwdinius.github.io/blog/2019/point-match/" rel="external nofollow noopener" target="_blank">point cloud correspondences problem</a> using graph-based methods.  This post is meant to be interactive and those who wish to run the code for yourselves, check out the <a href="https://github.com/jwdinius/practical-maximum-clique-repro/blob/master/MaximumClique.ipynb" rel="external nofollow noopener" target="_blank">jupyter notebook</a> from which this post was derived.</p>
-
-<p>Let’s start with some dependencies:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="utf-8"> <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"> <meta http-equiv="X-UA-Compatible" content="IE=edge"> <title>Finding Point Cloud Correspondences Using Undirected Graphs | Joe Dinius, Ph.D.</title> <meta name="author" content="Joe Dinius, Ph.D."> <meta name="description" content="Using graph-based methods to identify correspondences between point clouds"> <meta name="keywords" content="robotics, autonomy, math, optimization, controltheory, planning, computervision"> <link rel="stylesheet" href="/assets/css/bootstrap.min.css?a4b3f509e79c54a512b890d73235ef04"> <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/css/mdb.min.css" integrity="sha256-jpjYvU3G3N6nrrBwXJoVEYI/0zw8htfFnhT9ljN3JJw=" crossorigin="anonymous"> <link defer rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.css"> <link rel="stylesheet" href="/assets/css/academicons.min.css?df44dccb15554b4d2d173cb203488555"> <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Roboto+Slab:100,300,400,500,700|Material+Icons"> <link rel="stylesheet" href="/assets/css/jekyll-pygments-themes-github.css?19f3075a2d19613090fe9e16b564e1fe" media="" id="highlight_theme_light"> <link rel="shortcut icon" href="/assets/img/favicon.ico?53ca2be8c4ec0d533ef79017d1a2d734"> <link rel="stylesheet" href="/assets/css/main.css?d41d8cd98f00b204e9800998ecf8427e"> <link rel="canonical" href="https://jwdinius.github.io/blog/2021/max-clique/"> <link rel="stylesheet" href="/assets/css/jekyll-pygments-themes-native.css?e74e74bf055e5729d44a7d031a5ca6a5" media="none" id="highlight_theme_dark"> <script src="/assets/js/theme.js?96d6b3e1c3604aca8b6134c7afdd5db6"></script> <script src="/assets/js/dark_mode.js?9b17307bb950ffa2e34be0227f53558f"></script> </head> <body class="fixed-top-nav "> <header> <nav id="navbar" class="navbar navbar-light navbar-expand-sm fixed-top"> <div class="container"> <a class="navbar-brand title font-weight-lighter" href="/"><span class="font-weight-bold">Joe </span>Dinius, Ph.D.</a> <button class="navbar-toggler collapsed ml-auto" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"> <span class="sr-only">Toggle navigation</span> <span class="icon-bar top-bar"></span> <span class="icon-bar middle-bar"></span> <span class="icon-bar bottom-bar"></span> </button> <div class="collapse navbar-collapse text-right" id="navbarNav"> <ul class="navbar-nav ml-auto flex-nowrap"> <li class="nav-item "> <a class="nav-link" href="/">about</a> </li> <li class="nav-item active"> <a class="nav-link" href="/blog/">blog<span class="sr-only">(current)</span></a> </li> <li class="nav-item "> <a class="nav-link" href="/publications/">publications</a> </li> <li class="nav-item "> <a class="nav-link" href="/projects/">projects</a> </li> <li class="nav-item "> <a class="nav-link" href="/repositories/">git</a> </li> <li class="nav-item "> <a class="nav-link" href="/resume/">resume</a> </li> <li class="toggle-container"> <button id="light-toggle" title="Change theme"> <i class="fas fa-moon"></i> <i class="fas fa-sun"></i> </button> </li> </ul> </div> </div> </nav> <progress id="progress" value="0"> <div class="progress-container"> <span class="progress-bar"></span> </div> </progress> </header> <div class="container mt-5"> <div class="post"> <header class="post-header"> <h1 class="post-title">Finding Point Cloud Correspondences Using Undirected Graphs</h1> <p class="post-meta">February 20, 2021</p> <p class="post-tags"> <a href="/blog/2021"> <i class="fas fa-calendar fa-sm"></i> 2021 </a> </p> </header> <article class="post-content"> <div id="markdown-content"> <p>In this post, I will discuss an alternate approach to the <a href="http://jwdinius.github.io/blog/2019/point-match/" rel="external nofollow noopener" target="_blank">point cloud correspondences problem</a> using graph-based methods. This post is meant to be interactive and those who wish to run the code for yourselves, check out the <a href="https://github.com/jwdinius/practical-maximum-clique-repro/blob/master/MaximumClique.ipynb" rel="external nofollow noopener" target="_blank">jupyter notebook</a> from which this post was derived.</p> <p>Let’s start with some dependencies:</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
 <span class="kn">import</span> <span class="n">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 <span class="kn">from</span> <span class="n">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="n">time</span>
-</code></pre></div></div>
-
-<p>I want to create a set of points randomly sampled from a square.  These points will be used as the basis for subsequent demos.  First, let’s set the random seed for repeatability of experiments.</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="nf">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">11011</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>To setup the data for the experiments, we will define values for the following parameters:</p>
-
-<ul>
-  <li>
-<code class="language-plaintext highlighter-rouge">m</code> is number of points in source cloud</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">n</code> is number of points in target cloud</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">noise_val</code> is the 1-sigma value for applying noise (per channel $x,y$)</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">ang</code> is the rotation angle (ccw is positive) to apply</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">xt</code> is the $x$ translation to apply</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">yt</code> is the $y$ translation to apply</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">25</span>
+</code></pre></div></div> <p>I want to create a set of points randomly sampled from a square. These points will be used as the basis for subsequent demos. First, let’s set the random seed for repeatability of experiments.</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="nf">seed</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">11011</span><span class="p">)</span>
+</code></pre></div></div> <p>To setup the data for the experiments, we will define values for the following parameters:</p> <ul> <li> <code class="language-plaintext highlighter-rouge">m</code> is number of points in source cloud</li> <li> <code class="language-plaintext highlighter-rouge">n</code> is number of points in target cloud</li> <li> <code class="language-plaintext highlighter-rouge">noise_val</code> is the 1-sigma value for applying noise (per channel $x,y$)</li> <li> <code class="language-plaintext highlighter-rouge">ang</code> is the rotation angle (ccw is positive) to apply</li> <li> <code class="language-plaintext highlighter-rouge">xt</code> is the $x$ translation to apply</li> <li> <code class="language-plaintext highlighter-rouge">yt</code> is the $y$ translation to apply</li> </ul> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">25</span>
 <span class="n">noise_val</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">ang</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">4.</span>
 <span class="n">xt</span><span class="p">,</span> <span class="n">yt</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span>
 <span class="n">side_length</span> <span class="o">=</span> <span class="mi">20</span>
-</code></pre></div></div>
-
-<p>Let’s sample some points and apply a transformation to get two point sets for comparison:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># uniformly sample on square with dimensions side_length x side_length
+</code></pre></div></div> <p>Let’s sample some points and apply a transformation to get two point sets for comparison:</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># uniformly sample on square with dimensions side_length x side_length
 # use homogeneous coordinates
 </span><span class="n">target_pts</span> <span class="o">=</span> <span class="n">side_length</span> <span class="o">*</span> <span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="nf">random</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">side_length</span>
 <span class="n">target_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -196,22 +26,12 @@
 </span><span class="n">source_pts</span> <span class="o">=</span> <span class="n">target_pts_xform</span><span class="p">[:,</span> <span class="n">correspondences</span><span class="p">]</span> <span class="o">+</span> <span class="n">noise_val</span><span class="o">*</span><span class="n">np</span><span class="p">.</span><span class="n">random</span><span class="p">.</span><span class="nf">randn</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
 <span class="n">source_pts</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">0.</span>
 <span class="n">source_pts</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.</span>
-</code></pre></div></div>
-
-<p>Recall:  A <em>correspondence</em> is encoded by two points:  one from the source point cloud and the other from the target point cloud.  Such correspondences can be encoded as vertices in an undirected graph enumerated as $i’ \equiv i n + j$, with source point $i$ and corresponding target point $j$.  For more details, check out the following <a href="https://arxiv.org/abs/1902.01534" rel="external nofollow noopener" target="_blank">paper</a>.  For comparison of methods below, let’s start by identifying the true correspondences between the source and target point sets and plot the data:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">correspondenceVertices</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># for comparison below
+</code></pre></div></div> <p>Recall: A <em>correspondence</em> is encoded by two points: one from the source point cloud and the other from the target point cloud. Such correspondences can be encoded as vertices in an undirected graph enumerated as $i’ \equiv i n + j$, with source point $i$ and corresponding target point $j$. For more details, check out the following <a href="https://arxiv.org/abs/1902.01534" rel="external nofollow noopener" target="_blank">paper</a>. For comparison of methods below, let’s start by identifying the true correspondences between the source and target point sets and plot the data:</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">correspondenceVertices</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># for comparison below
 </span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nf">enumerate</span><span class="p">(</span><span class="n">correspondences</span><span class="p">):</span>
     <span class="n">correspondenceVertices</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">i</span><span class="o">*</span><span class="n">n</span> <span class="o">+</span> <span class="n">c</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Correspondence vertices list is {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Correspondence vertices list is [23, 41, 72, 88, 105, 137, 165, 189, 219, 234, 267, 283, 301, 328, 374]
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="p">.</span><span class="nf">figure</span><span class="p">()</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Correspondence vertices list is {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">))</span>
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Correspondence vertices list is [23, 41, 72, 88, 105, 137, 165, 189, 219, 234, 267, 283, 301, 328, 374]
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="p">.</span><span class="nf">figure</span><span class="p">()</span>
 <span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="nf">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
 <span class="n">ax1</span><span class="p">.</span><span class="nf">plot</span><span class="p">(</span><span class="n">target_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">target_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="sh">'</span><span class="s">o</span><span class="sh">'</span><span class="p">,</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">source_pts</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="sh">'</span><span class="s">r.</span><span class="sh">'</span><span class="p">)</span>
 <span class="n">ax1</span><span class="p">.</span><span class="nf">set_ylabel</span><span class="p">(</span><span class="sh">"</span><span class="s">y</span><span class="sh">"</span><span class="p">)</span>
@@ -230,26 +50,7 @@
     <span class="n">ax2</span><span class="p">.</span><span class="nf">set_title</span><span class="p">(</span><span class="sh">"</span><span class="s">True Correspondences</span><span class="sh">"</span><span class="p">)</span>
     <span class="n">ax2</span><span class="p">.</span><span class="nf">set_xlabel</span><span class="p">(</span><span class="sh">"</span><span class="s">x</span><span class="sh">"</span><span class="p">)</span>
 <span class="n">plt</span><span class="p">.</span><span class="nf">show</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p><img src="/assets/img/output_9_0.png" alt="expected-output"></p>
-
-<p>You’re probably asking at this point: <em>How do we go about actually finding the true correspondences?</em>  We need the notion of <em>pairwise consistency</em>:</p>
-
-<p>Two correspondences are pairwise consistent <em>iff</em>:</p>
-<ul>
-  <li>The source points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d1</code>
-</li>
-  <li>The target points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d2</code>
-</li>
-  <li>The absolute value of the difference between <code class="language-plaintext highlighter-rouge">d1</code> and <code class="language-plaintext highlighter-rouge">d2</code> is <em>at maximum</em> <code class="language-plaintext highlighter-rouge">epsilon</code> distance apart.</li>
-</ul>
-
-<p>for some <code class="language-plaintext highlighter-rouge">epsilon</code>, <code class="language-plaintext highlighter-rouge">d1</code>, and <code class="language-plaintext highlighter-rouge">d2</code> greater than 0. This provides a significant restriction/constraint for our problem, as it allows us to discard unreasonable correspondence edges based on a simple consistency check based on distance.</p>
-
-<p>We can create a pairwise-consistency check as follows:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">pwThresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+</code></pre></div></div> <p><img src="/assets/img/output_9_0.png" alt="expected-output"></p> <p>You’re probably asking at this point: <em>How do we go about actually finding the true correspondences?</em> We need the notion of <em>pairwise consistency</em>:</p> <p>Two correspondences are pairwise consistent <em>iff</em>:</p> <ul> <li>The source points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d1</code> </li> <li>The target points from each correspondence are a minimum of <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> distance apart; call this distance <code class="language-plaintext highlighter-rouge">d2</code> </li> <li>The absolute value of the difference between <code class="language-plaintext highlighter-rouge">d1</code> and <code class="language-plaintext highlighter-rouge">d2</code> is <em>at maximum</em> <code class="language-plaintext highlighter-rouge">epsilon</code> distance apart.</li> </ul> <p>for some <code class="language-plaintext highlighter-rouge">epsilon</code>, <code class="language-plaintext highlighter-rouge">d1</code>, and <code class="language-plaintext highlighter-rouge">d2</code> greater than 0. This provides a significant restriction/constraint for our problem, as it allows us to discard unreasonable correspondence edges based on a simple consistency check based on distance.</p> <p>We can create a pairwise-consistency check as follows:</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">isPairwiseConsistent</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">cj</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">pwThresh</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
     <span class="c1"># ci - i*n + i', i \in source, i' \in target
 </span>    <span class="c1"># cj - j*n + j', j \in source, j' \in target
 </span>    <span class="c1"># ci.x is 3x1 numpy array
@@ -262,33 +63,11 @@
     <span class="k">return</span>  <span class="n">d1</span> <span class="o">&gt;=</span> <span class="n">pwThresh</span> \
         <span class="ow">and</span> <span class="n">d2</span> <span class="o">&gt;=</span> <span class="n">pwThresh</span> \
         <span class="ow">and</span> <span class="n">d3</span> <span class="o">&lt;=</span> <span class="n">epsilon</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returns true when two correspondences, <code class="language-plaintext highlighter-rouge">ci</code> and <code class="language-plaintext highlighter-rouge">cj</code>, are pairwise consistent.  <em><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returning True means that we need to create and edge between the two input correspondence vertices.</em>  The graph structure should now be becoming clear in your mind: <em>possible correspondences are encoded as vertices of an undirected graph with edges between correspondences determined by the pairwise consistency check.</em>  To find the best possible set of correspondences, we can compute the <a href="https://cs.stanford.edu/people/eroberts/courses/soco/projects/2003-04/dna-computing/clique.htm" rel="external nofollow noopener" target="_blank"><em>maximum clique</em></a> of the graph, which represents the subgraph of largest size where all correspondence vertices are pairwise consistent with each other (i.e. have edges connecting each correspondence to every other correspondence in the subgraph).</p>
-
-<p>Before getting to a couple of approaches for computing the maximum clique, I’ll define a few helper functions for comparison of algorithm output to ground truth</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">cliqueOne</span><span class="p">,</span> <span class="n">cliqueTwo</span><span class="p">):</span>
+</code></pre></div></div> <p><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returns true when two correspondences, <code class="language-plaintext highlighter-rouge">ci</code> and <code class="language-plaintext highlighter-rouge">cj</code>, are pairwise consistent. <em><code class="language-plaintext highlighter-rouge">isPairwiseConsistent</code> returning True means that we need to create and edge between the two input correspondence vertices.</em> The graph structure should now be becoming clear in your mind: <em>possible correspondences are encoded as vertices of an undirected graph with edges between correspondences determined by the pairwise consistency check.</em> To find the best possible set of correspondences, we can compute the <a href="https://cs.stanford.edu/people/eroberts/courses/soco/projects/2003-04/dna-computing/clique.htm" rel="external nofollow noopener" target="_blank"><em>maximum clique</em></a> of the graph, which represents the subgraph of largest size where all correspondence vertices are pairwise consistent with each other (i.e. have edges connecting each correspondence to every other correspondence in the subgraph).</p> <p>Before getting to a couple of approaches for computing the maximum clique, I’ll define a few helper functions for comparison of algorithm output to ground truth</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">cliqueOne</span><span class="p">,</span> <span class="n">cliqueTwo</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">cliqueOne</span><span class="p">.</span><span class="nf">sort</span><span class="p">()</span> <span class="o">==</span> <span class="n">cliqueTwo</span><span class="p">.</span><span class="nf">sort</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>User-defined constants:</p>
-<ul>
-  <li>
-<code class="language-plaintext highlighter-rouge">epsilon</code> above $\to$ <code class="language-plaintext highlighter-rouge">eps</code>
-</li>
-  <li>
-<code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> above $\to$ <code class="language-plaintext highlighter-rouge">pwThr</code>
-</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-1</span>
+</code></pre></div></div> <p>User-defined constants:</p> <ul> <li> <code class="language-plaintext highlighter-rouge">epsilon</code> above $\to$ <code class="language-plaintext highlighter-rouge">eps</code> </li> <li> <code class="language-plaintext highlighter-rouge">pairwiseThreshold</code> above $\to$ <code class="language-plaintext highlighter-rouge">pwThr</code> </li> </ul> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-1</span>
 <span class="n">pwThr</span> <span class="o">=</span> <span class="mf">1e-1</span>
-</code></pre></div></div>
-
-<p>Construct vertices and edges for maximum clique calculation.</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div></div> <p>Construct vertices and edges for maximum clique calculation.</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
@@ -306,21 +85,10 @@
                             <span class="n">V</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">V1</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">V2</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
                             <span class="n">V</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">V2</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>Python has a useful library for graph processing called <code class="language-plaintext highlighter-rouge">networkx</code>.  As a baseline, let’s setup a workflow using <code class="language-plaintext highlighter-rouge">networkx</code> to compute the maximum clique.</p>
-
-<h2 id="maximum-clique-identification-using-networkx">Maximum Clique Identification using <code class="language-plaintext highlighter-rouge">networkx</code>
-</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">networkx</span> <span class="k">as</span> <span class="n">nx</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="nc">Graph</span><span class="p">()</span>
+</code></pre></div></div> <p>Python has a useful library for graph processing called <code class="language-plaintext highlighter-rouge">networkx</code>. As a baseline, let’s setup a workflow using <code class="language-plaintext highlighter-rouge">networkx</code> to compute the maximum clique.</p> <h2 id="maximum-clique-identification-using-networkx">Maximum Clique Identification using <code class="language-plaintext highlighter-rouge">networkx</code> </h2> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">networkx</span> <span class="k">as</span> <span class="n">nx</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="nc">Graph</span><span class="p">()</span>
 <span class="n">G</span><span class="p">.</span><span class="nf">add_edges_from</span><span class="p">(</span><span class="n">E</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cliques</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">nx</span><span class="p">.</span><span class="nf">find_cliques_recursive</span><span class="p">(</span><span class="n">G</span><span class="p">))</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cliques</span> <span class="o">=</span> <span class="nf">list</span><span class="p">(</span><span class="n">nx</span><span class="p">.</span><span class="nf">find_cliques_recursive</span><span class="p">(</span><span class="n">G</span><span class="p">))</span>
 <span class="c1">#plt.figure()
 #nx.draw(G, with_labels=True)
 </span><span class="n">maxClique</span> <span class="o">=</span> <span class="p">[]</span>
@@ -331,60 +99,32 @@
         <span class="n">maxClique</span> <span class="o">=</span> <span class="n">c</span>
         <span class="n">maxCliqueSize</span> <span class="o">=</span> <span class="nf">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 <span class="n">timeElapsed</span> <span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="nf">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tBegin</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique was found in {}sec</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique was found in {}sec</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique has size {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">maxCliqueSize</span><span class="p">))</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique is {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">maxClique</span><span class="p">))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.000392913818359375sec
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.000392913818359375sec
 Max clique has size 15
 Max clique is [105, 234, 165, 72, 328, 41, 137, 267, 301, 219, 374, 88, 283, 189, 23]
-</code></pre></div></div>
-
-<p>Check that <code class="language-plaintext highlighter-rouge">maxClique</code> is equivalent to the true correspondences.</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Is the correspondence list equivalent to the max clique?  {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxClique</span><span class="p">)))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Is the correspondence list equivalent to the max clique?  True
-</code></pre></div></div>
-
-<p>The approach above shows that the max clique of the graph does, indeed, identify the true correspondences.  The approach above is useful if you are developing under a native Python environment.  Unfortunately, no equivalent library for C++ is available.  We can use branch-and-bound based algorithms for computing the max cliques in a purely algorithmic way; such approaches can be implemented easily in other languages.</p>
-
-<h2 id="practical-maximum-clique-algorithms">Practical Maximum Clique Algorithms</h2>
-
-<p>The first two max clique algorithms from <a href="https://arxiv.org/abs/1902.01534" rel="external nofollow noopener" target="_blank">here</a> are implemented below.  First, let’s define a few routines for computing needed quantities</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">vertex</span><span class="p">):</span>
+</code></pre></div></div> <p>Check that <code class="language-plaintext highlighter-rouge">maxClique</code> is equivalent to the true correspondences.</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Is the correspondence list equivalent to the max clique?  {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxClique</span><span class="p">)))</span>
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Is the correspondence list equivalent to the max clique?  True
+</code></pre></div></div> <p>The approach above shows that the max clique of the graph does, indeed, identify the true correspondences. The approach above is useful if you are developing under a native Python environment. Unfortunately, no equivalent library for C++ is available. We can use branch-and-bound based algorithms for computing the max cliques in a purely algorithmic way; such approaches can be implemented easily in other languages.</p> <h2 id="practical-maximum-clique-algorithms">Practical Maximum Clique Algorithms</h2> <p>The first two max clique algorithms from <a href="https://arxiv.org/abs/1902.01534" rel="external nofollow noopener" target="_blank">here</a> are implemented below. First, let’s define a few routines for computing needed quantities</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">adjacency</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">vertex</span><span class="p">):</span>
     <span class="n">adj</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">vertex</span> <span class="ow">in</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">adj</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">vertex</span> <span class="o">!=</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">adj</span><span class="p">.</span><span class="nf">append</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">adj</span>
-</code></pre></div></div>
-
-<p>As a quick check, reproduce the simple example from the paper:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># unit test for adjacency using graph from paper (Figure 2)
+</code></pre></div></div> <p>As a quick check, reproduce the simple example from the paper:</p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># unit test for adjacency using graph from paper (Figure 2)
 </span><span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 <span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
 <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">V</span><span class="p">:</span>
     <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">v: {}, adj(V): {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nf">adjacency</span><span class="p">(</span><span class="n">E</span><span class="p">,</span> <span class="n">v</span><span class="p">)))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>v: 1, adj(V): [2, 5, 6]
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>v: 1, adj(V): [2, 5, 6]
 v: 2, adj(V): [1, 3, 4, 5]
 v: 3, adj(V): [2, 4, 5]
 v: 4, adj(V): [2, 3, 5]
 v: 5, adj(V): [1, 2, 3, 4, 6]
 v: 6, adj(V): [1, 5]
-</code></pre></div></div>
-
-<h3 id="basic-bnb-algorithm-1">Basic BnB (Algorithm 1)</h3>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcBasicBnB</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+</code></pre></div></div> <h3 id="basic-bnb-algorithm-1">Basic BnB (Algorithm 1)</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcBasicBnB</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span>
     <span class="sh">"""</span><span class="s">
     Algorithm 1 from paper </span><span class="sh">"</span><span class="s">A Practical Maximal Clique for Matching with Pairwise Constraints</span><span class="sh">"</span><span class="s"> by
@@ -406,23 +146,13 @@ v: 6, adj(V): [1, 5]
             <span class="n">Rbest</span> <span class="o">=</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
         <span class="n">R</span><span class="p">.</span><span class="nf">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="n">S</span><span class="p">.</span><span class="nf">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
 <span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 <span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
 <span class="nf">mcBasicBnB</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Rbest is: {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">Rbest</span><span class="p">))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [2, 3, 4, 5]
-</code></pre></div></div>
-
-<p>Which matches the article’s result.</p>
-
-<p>Quick check:  <em>Does</em> <code class="language-plaintext highlighter-rouge">mcqBasicBnB</code> <em>find the correspondences like the previous method tried (i.e. the one using</em> <code class="language-plaintext highlighter-rouge">networkx</code> <em>)?</em></p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [2, 3, 4, 5]
+</code></pre></div></div> <p>Which matches the article’s result.</p> <p>Quick check: <em>Does</em> <code class="language-plaintext highlighter-rouge">mcqBasicBnB</code> <em>find the correspondences like the previous method tried (i.e. the one using</em> <code class="language-plaintext highlighter-rouge">networkx</code> <em>)?</em></p> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
@@ -447,17 +177,9 @@ v: 6, adj(V): [1, 5]
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique was found in {}sec</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
 <span class="n">maxCliqueBasicBnB</span> <span class="o">=</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">Rbest</span><span class="p">)</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Is the correspondence list equivalent to the mcBasicBnB maximum clique?  {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxCliqueBasicBnB</span><span class="p">)))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 4.391311883926392sec
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 4.391311883926392sec
 Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
-</code></pre></div></div>
-
-<p>Cool.  <code class="language-plaintext highlighter-rouge">maxCliqueBasicBnB</code> works but is pretty slow (though it is faster than the <a href="https://jwdinius.github.io/blog/2020/point-match-cont/">quadratic assignment approach</a>.  Let’s try Algorithm 2.</p>
-
-<h3 id="mcq-algorithm-2">MCQ (Algorithm 2)</h3>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">first_available</span><span class="p">(</span><span class="n">colors</span><span class="p">):</span>
+</code></pre></div></div> <p>Cool. <code class="language-plaintext highlighter-rouge">maxCliqueBasicBnB</code> works but is pretty slow (though it is faster than the <a href="https://jwdinius.github.io/blog/2020/point-match-cont/">quadratic assignment approach</a>. Let’s try Algorithm 2.</p> <h3 id="mcq-algorithm-2">MCQ (Algorithm 2)</h3> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">first_available</span><span class="p">(</span><span class="n">colors</span><span class="p">):</span>
     <span class="sh">"""</span><span class="s">Return smallest integer not in the given list of colors.</span><span class="sh">"""</span>
     <span class="n">count</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nf">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># Allocate long-enough array of zeros
 </span>    <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="p">:</span>
@@ -466,9 +188,7 @@ Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
     <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="nf">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">count</span><span class="p">[</span><span class="n">color</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">color</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">greedy_color</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">greedy_color</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
     <span class="sh">"""</span><span class="s">Find the greedy coloring of graph defined by edges in the given vertices.
     </span><span class="sh">"""</span>
     <span class="n">color</span> <span class="o">=</span> <span class="nf">dict</span><span class="p">()</span>
@@ -477,9 +197,7 @@ Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">color</span><span class="p">:</span>
         <span class="n">color</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>  <span class="c1"># make sure to start coloring from 1
 </span>    <span class="k">return</span> <span class="n">color</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcMCQ</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">mcMCQ</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span>
     <span class="sh">"""</span><span class="s">
     Algorithm 2 from paper </span><span class="sh">"</span><span class="s">A Practical Maximal Clique for Matching with Pairwise Constraints</span><span class="sh">"</span><span class="s"> by
@@ -507,21 +225,15 @@ Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
             <span class="n">Rbest</span> <span class="o">=</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">R</span><span class="p">)</span>
         <span class="n">R</span><span class="p">.</span><span class="nf">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="n">Ssrt</span><span class="p">.</span><span class="nf">remove</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">R</span><span class="p">,</span> <span class="n">Rbest</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
 <span class="n">V</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
 <span class="n">E</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
 <span class="n">f</span> <span class="o">=</span> <span class="nf">greedy_color</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
 <span class="c1">#print(f)
 </span><span class="nf">mcMCQ</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">E</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Rbest is: {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">Rbest</span><span class="p">))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [5, 2, 4, 3]
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rbest is: [5, 2, 4, 3]
+</code></pre></div></div> <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">E</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">V</span> <span class="o">=</span> <span class="p">[]</span> 
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">source_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
     <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nf">range</span><span class="p">(</span><span class="n">target_pts</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
@@ -547,186 +259,6 @@ Is the correspondence list equivalent to the mcBasicBnB maximum clique?  True
 <span class="n">maxCliqueMCQ</span> <span class="o">=</span> <span class="nf">deepcopy</span><span class="p">(</span><span class="n">Rbest</span><span class="p">)</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Max clique was found in {}sec</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="n">timeElapsed</span><span class="p">))</span>
 <span class="nf">print</span><span class="p">(</span><span class="sh">"</span><span class="s">Is the correspondence list equivalent to the mcMCQ maximum clique?  {}</span><span class="sh">"</span><span class="p">.</span><span class="nf">format</span><span class="p">(</span><span class="nf">cliquesAreEquivalent</span><span class="p">(</span><span class="n">correspondenceVertices</span><span class="p">,</span> <span class="n">maxCliqueBasicBnB</span><span class="p">)))</span>
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.07146430015563965sec
+</code></pre></div></div> <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Max clique was found in 0.07146430015563965sec
 Is the correspondence list equivalent to the mcMCQ maximum clique?  True
-</code></pre></div></div>
-
-<p>This algorithm is significantly faster than the basic BnB with the same result.  You should take care to analyze runtime performance for your particular <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>: <em>for smaller <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>, you should use the basic BnB</em>.</p>
-
-<h2 id="conclusion">Conclusion</h2>
-
-<p>The work described in this post was used as the basis for the <code class="language-plaintext highlighter-rouge">mc</code> algorithm in my project <a href="https://github.com/jwdinius/nmsac" rel="external nofollow noopener" target="_blank"><code class="language-plaintext highlighter-rouge">nmsac</code></a>.  The graph-based methods provide a faster, simpler way of identifying point-to-point correspondences between two point clouds.  I wanted to write up this post as a primer similar to the posts done for the <a href="https://jwdinius.github.io/blog/2020/point-match-sol/"><code class="language-plaintext highlighter-rouge">qap</code></a> algorithm, which solves the correspondence problem using optimization-based methods.  This is the last post relating to <code class="language-plaintext highlighter-rouge">nmsac</code> before the final project write-up, which should be completed in the next few weeks.</p>
-
-<p><em>Thanks for reading!</em></p>
-
-  </article>
-
-
-  
-    
-    <br>
-    <hr>
-    <br>
-    <ul class="list-disc pl-8"></ul>
-
-    <!-- Adds related posts to the end of an article -->
-    <h2 class="text-3xl font-semibold mb-4 mt-12">Enjoy Reading This Article?</h2>
-    <p class="mb-2">Here are some more articles you might like to read next:</p>
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2022/displaying-external-posts-on-your-al-folio-blog/">Displaying External Posts on Your al-folio Blog</a>
-  </li>
-
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2023/f110-pdm-board/">Building the F1TENTH Power Distribution Module (PDM)</a>
-  </li>
-
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2021/goodbye-2021/">So long, 2021</a>
-  </li>
-
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2020/lookalike/">Celebrity Lookalike Project Writeup</a>
-  </li>
-
-  
-
-  <li class="my-2">
-    <a class="text-pink-700 underline font-semibold hover:text-pink-800" href="/blog/2020/virtualmakeup/">Virtual Makeup Project Writeup</a>
-  </li>
-
-</div>
-
-    </div>
-
-    <!-- Footer -->    
-    <footer class="fixed-bottom">
-      <div class="container mt-0">
-        © Copyright 2023 Joe  Dinius. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>.
-
-      </div>
-    </footer>
-
-    <!-- JavaScripts -->
-    <!-- jQuery -->
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-
-    <!-- Bootsrap & MDB scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha256-fgLAgv7fyCGopR/gBNq2iW3ZKIdqIcyshnUULC4vex8=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script>
-
-    <!-- Masonry & imagesLoaded -->
-  <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@4/imagesloaded.pkgd.min.js"></script>
-  <script defer src="/assets/js/masonry.js" type="text/javascript"></script>
-    
-  <!-- Medium Zoom JS -->
-  <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.8/dist/medium-zoom.min.js" integrity="sha256-7PhEpEWEW0XXQ0k6kQrPKwuoIomz8R8IYyuU1Qew4P8=" crossorigin="anonymous"></script>
-  <script defer src="/assets/js/zoom.js"></script><!-- Load Common JS -->
-  <script defer src="/assets/js/common.js"></script>
-  <script defer src="/assets/js/copy_code.js" type="text/javascript"></script>
-
-    
-
-    <!-- MathJax -->
-  <script type="text/javascript">
-    window.MathJax = {
-      tex: {
-        tags: 'ams'
-      }
-    };
-  </script>
-  <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script>
-  <script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-
-    
-    
-
-<!-- Scrolling Progress Bar -->
-<script type="text/javascript">
-  /*
-   * This JavaScript code has been adapted from the article 
-   * https://css-tricks.com/reading-position-indicator/ authored by Pankaj Parashar, 
-   * published on the website https://css-tricks.com on the 7th of May, 2014.
-   * Couple of changes were made to the original code to make it compatible 
-   * with the `al-foio` theme.
-   */
-  const progressBar = $("#progress");
-  /*
-   * We set up the bar after all elements are done loading.
-   * In some cases, if the images in the page are larger than the intended
-   * size they'll have on the page, they'll be resized via CSS to accomodate
-   * the desired size. This mistake, however, breaks the computations as the
-   * scroll size is computed as soon as the elements finish loading.
-   * To account for this, a minimal delay was introduced before computing the
-   * values.
-   */
-  window.onload = function () {
-    setTimeout(progressBarSetup, 50);
-  };
-  /*
-   * We set up the bar according to the browser.
-   * If the browser supports the progress element we use that.
-   * Otherwise, we resize the bar thru CSS styling
-   */
-  function progressBarSetup() {
-    if ("max" in document.createElement("progress")) {
-      initializeProgressElement();
-      $(document).on("scroll", function() {
-        progressBar.attr({ value: getCurrentScrollPosition() });
-      });
-      $(window).on("resize", initializeProgressElement);
-    } else {
-      resizeProgressBar();
-      $(document).on("scroll", resizeProgressBar);
-      $(window).on("resize", resizeProgressBar);
-    }
-  }
-  /*
-   * The vertical scroll position is the same as the number of pixels that
-   * are hidden from view above the scrollable area. Thus, a value > 0 is
-   * how much the user has scrolled from the top
-   */
-  function getCurrentScrollPosition() {
-    return $(window).scrollTop();
-  }
-
-  function initializeProgressElement() {
-    let navbarHeight = $("#navbar").outerHeight(true);
-    $("body").css({ "padding-top": navbarHeight });
-    $("progress-container").css({ "padding-top": navbarHeight });
-    progressBar.css({ top: navbarHeight });
-    progressBar.attr({
-      max: getDistanceToScroll(),
-      value: getCurrentScrollPosition(),
-    });
-  }
-  /*
-   * The offset between the html document height and the browser viewport
-   * height will be greater than zero if vertical scroll is possible.
-   * This is the distance the user can scroll
-   */
-  function getDistanceToScroll() {
-    return $(document).height() - $(window).height();
-  }
-
-  function resizeProgressBar() {
-    progressBar.css({ width: getWidthPercentage() + "%" });
-  }
-  // The scroll ratio equals the percentage to resize the bar
-  function getWidthPercentage() {
-    return (getCurrentScrollPosition() / getDistanceToScroll()) * 100;
-  }
-</script>
-
-  </body>
-</html>
+</code></pre></div></div> <p>This algorithm is significantly faster than the basic BnB with the same result. You should take care to analyze runtime performance for your particular <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>: <em>for smaller <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>, you should use the basic BnB</em>.</p> <h2 id="conclusion">Conclusion</h2> <p>The work described in this post was used as the basis for the <code class="language-plaintext highlighter-rouge">mc</code> algorithm in my project <a href="https://github.com/jwdinius/nmsac" rel="external nofollow noopener" target="_blank"><code class="language-plaintext highlighter-rouge">nmsac</code></a>. The graph-based methods provide a faster, simpler way of identifying point-to-point correspondences between two point clouds. I wanted to write up this post as a primer similar to the posts done for the <a href="https://jwdinius.github.io/blog/2020/point-match-sol/"><code class="language-plaintext highlighter-rouge">qap</code></a> algorithm, which solves the correspondence problem using optimization-based methods. This is the last post relating to <code class="language-plaintext highlighter-rouge">nmsac</code> before the final project write-up, which should be completed in the next few weeks.</p> <p><em>Thanks for reading!</em></p> </div> </article> </div> </div> <footer class="fixed-bottom"> <div class="container mt-0"> © Copyright 2023 Joe Dinius, Ph.D.. Powered by <a href="https://jekyllrb.com/" target="_blank" rel="external nofollow noopener">Jekyll</a> with <a href="https://github.com/alshedivat/al-folio" rel="external nofollow noopener" target="_blank">al-folio</a> theme. Hosted by <a href="https://pages.github.com/" target="_blank" rel="external nofollow noopener">GitHub Pages</a>. Photos from <a href="https://unsplash.com" target="_blank" rel="external nofollow noopener">Unsplash</a>. </div> </footer> <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script> <script src="/assets/js/bootstrap.bundle.min.js"></script> <script src="https://cdn.jsdelivr.net/npm/mdbootstrap@4.20.0/js/mdb.min.js" integrity="sha256-NdbiivsvWt7VYCt6hYNT3h/th9vSTL4EDWeGs5SN3DA=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha256-Nn1q/fx0H7SNLZMQ5Hw5JLaTRZp0yILA/FRexe19VdI=" crossorigin="anonymous"></script> <script defer src="https://cdn.jsdelivr.net/npm/imagesloaded@4/imagesloaded.pkgd.min.js"></script> <script defer src="/assets/js/masonry.js" type="text/javascript"></script> <script defer src="https://cdn.jsdelivr.net/npm/medium-zoom@1.0.8/dist/medium-zoom.min.js" integrity="sha256-7PhEpEWEW0XXQ0k6kQrPKwuoIomz8R8IYyuU1Qew4P8=" crossorigin="anonymous"></script> <script defer src="/assets/js/zoom.js?7b30caa5023af4af8408a472dc4e1ebb"></script> <script defer src="https://unpkg.com/bootstrap-table@1.22.1/dist/bootstrap-table.min.js"></script> <script src="/assets/js/no_defer.js?d633890033921b33e0ceb13d22340a9c"></script> <script defer src="/assets/js/common.js?acdb9690d7641b2f8d40529018c71a01"></script> <script defer src="/assets/js/copy_code.js?c9d9dd48933de3831b3ee5ec9c209cac" type="text/javascript"></script> <script async src="https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js"></script> <script async src="https://badge.dimensions.ai/badge.js"></script> <script type="text/javascript">window.MathJax={tex:{tags:"ams"}};</script> <script defer type="text/javascript" id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js"></script> <script defer src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> <script type="text/javascript">function progressBarSetup(){"max"in document.createElement("progress")?(initializeProgressElement(),$(document).on("scroll",function(){progressBar.attr({value:getCurrentScrollPosition()})}),$(window).on("resize",initializeProgressElement)):(resizeProgressBar(),$(document).on("scroll",resizeProgressBar),$(window).on("resize",resizeProgressBar))}function getCurrentScrollPosition(){return $(window).scrollTop()}function initializeProgressElement(){let e=$("#navbar").outerHeight(!0);$("body").css({"padding-top":e}),$("progress-container").css({"padding-top":e}),progressBar.css({top:e}),progressBar.attr({max:getDistanceToScroll(),value:getCurrentScrollPosition()})}function getDistanceToScroll(){return $(document).height()-$(window).height()}function resizeProgressBar(){progressBar.css({width:getWidthPercentage()+"%"})}function getWidthPercentage(){return getCurrentScrollPosition()/getDistanceToScroll()*100}const progressBar=$("#progress");window.onload=function(){setTimeout(progressBarSetup,50)};</script> </body> </html>
