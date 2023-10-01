@@ -130,7 +130,7 @@ pagination:
   enabled: true
 
 related_blog_posts:
-  enabled: true
+  enabled: false  # see https://github.com/alshedivat/al-folio/issues/1203
   max_related: 5
 
 # Giscus comments (RECOMMENDED)
