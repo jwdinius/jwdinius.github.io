@@ -2,6 +2,8 @@
 layout: page
 permalink: /learning/
 title: learning
+nav: true
+nav_order: 4
 description: Summary of coursework completed after graduate school
 ---
 
