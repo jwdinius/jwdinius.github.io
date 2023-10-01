@@ -1,0 +1,1 @@
+$("script[type='math/tex']").replaceWith(function(){var t=$(this).text();return'<span class="inline-equation">'+katex.renderToString(t)+"</span>"}),$("script[type='math/tex; mode=display']").replaceWith(function(){var t=$(this).text();return'<div class="equation">'+katex.renderToString("\\displaystyle "+t)+"</div>"});
