@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Implementation of different fixed-wing flight controllers
-description: A comparison of three different flight controllers for a simulated fixed-wing aircraft
+description: A comparison of three different flight controllers for a simulated fixed-wing aircraft.
 date:   2023-10-13 10:00:00
 use_math: true
 comments: true
@@ -58,6 +58,9 @@ The guidance for implementing and tuning this controller is summarized as follow
 Following the guidance, I was able to implement and test the successive loop closure controller.
 
 ![piddemo](/assets/img/sim_controller/pid-ch6.gif)
+
+
+[GitHub](https://github.com/jwdinius/uavbook/blob/jwd_solns/mavsim_python/control/autopilot.py)
 
 The controller works well with only a moderate amount of tuning.  I found that a bandwidth multiplier factor greater than 10, substantially greater for the altitude outer loop, worked well to handle step responses without ringing or instability.
 
@@ -266,6 +269,8 @@ Following on the discussion from earlier in this section: if the augmented syste
 
 ![lqrdemo](/assets/img/sim_controller/lqr-ch6.gif)
 
+[GitHub](https://github.com/jwdinius/uavbook/blob/jwd_solns/mavsim_python/control/autopilot_lqr.py)
+
 The [implementation]() of this controller is straightforward when following the material from Chapter 9 of Friedland's book.  The main consideration for controller performance is selection of the design parameters, $$Q$$ and $$R$$.  [Bryson and Ho](https://www.sciencedirect.com/science/article/pii/S1110016821007900#:~:text=According%20to%20this%20rule%2C%20Q,concerned%20with%20disturbances%20and%20uncertainty.) provide the following guidance:
 
 * Set the off-diagonal terms of both $$Q$$ and $$R$$ to $$0$$.
@@ -383,6 +388,8 @@ $$
 
 ![tecsdemo](/assets/img/sim_controller/tecs-pid.gif)
 
+[GitHub](https://github.com/jwdinius/uavbook/blob/jwd_solns/mavsim_python/control/autopilot_tecs.py)
+
 The TECS approach applies only to the longitudinal channel so a lateral controller must be implemented separately.  I chose to take the successive loop closure PID-based controller, but the LQR controller could have been chosen.  Notice that the control law from the previous section defines commanded thrust and flight path angle.  The expected control inputs are throttle and elevator, so a conversion between derived and actual controls is needed.
 
 Thrust is a nonlinear function of throttle and airspeed.  I used this relationship to build a lookup table from thrust and airspeed to commanded throttle.  The alternative is to do a computationally expensive root finding operation each control iteration, which works fine for simulation but would likely be too slow in an actual flight controller to meet real-time requirements.  The elevator command comes from a PD controller on pitch error; the same as in the successive loop closure case but with different gains.
@@ -411,7 +418,7 @@ While implementing this controller, I observed steady-state errors on airspeed a
 
 Three flight control schemes for a simulated fixed-wing aircraft were presented and applied to a common test case with step disturbances on feedforward reference commands and moderate wind effects.  The successive loop closure controller was the simplest and easiest to implement, however it was difficult to tune and did not properly account for coupling between the different state terms.  The LQR controller performed well, but it required finding a trim point and linearizing about it.  To account for large deviations from the trim point; e.g., when a large step response in input command is requested, the control design parameter $$Q$$ must be selected to lower the control bandwidth, which will affect how responsive the controller is.  The TECS-based controller performed the best of all controllers, but it only works on the longitudinal channel and is very complex.
 
-Based on these observations, I think that the best flight controller that can be built from the options presented combines the lateral channel of the LQR controller with the TECS longitudinal controller.
+Based on these observations, I think that the best flight controller that can be built from the options presented combines the lateral channel of the LQR controller with the TECS longitudinal controller; see [GitHub](https://github.com/jwdinius/uavbook/blob/jwd_solns/mavsim_python/control/autopilot_hybrid.py) for the implementation.
 
 Thanks for reading!
 
