@@ -71,7 +71,7 @@ github_username: jwdinius # your GitHub user name
 gitlab_username: # your GitLab user name
 x_username: fractalisman # your X handle
 mastodon_username: # your mastodon instance+username in the format instance.tld/@username
-linkedin_username: joe.dinius1 # your LinkedIn user name
+linkedin_username: joedinius1 # your LinkedIn user name
 telegram_username: # your Telegram user name
 scholar_userid: # your Google Scholar ID
 semanticscholar_id: # your Semantic Scholar ID
@@ -90,7 +90,7 @@ keybase_username: # your keybase user name
 wikidata_id: # your wikidata id
 wikipedia_id: # your wikipedia id (Case sensitive)
 dblp_url: # your DBLP profile url
-stackoverflow_id: joe.dinius # your stackoverflow id
+stackoverflow_id: 2655373 # your stackoverflow id
 kaggle_id: # your kaggle id
 lastfm_id: # your lastfm id
 spotify_id: # your spotify id
