@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Non-Minimal (random) Sample and Consensus (NMSAC)
+title: Point cloud alignment with NMSAC
 description: One approach for solving the point cloud registration problem with unknown correspondences
 img: /assets/img/nmsac/cubes_aligned_tn.png
 category: computer-vision
